@@ -12,10 +12,49 @@ import os
 import codecs
 import torch
 
+from Tools.labelop import extract_fast5
 from onmt.utils.logging import init_logger, logger
 
-import onmt.inputters as inputters
-import onmt.opts as opts
+import inputters.inputter as inputters
+import Tools.opts as opts
+
+
+
+def init_fast5(opt, number_file_eval):
+    """ extract every h5 file of src_dir into segments and save to train/eval.txt """
+    ind_file_train = 0
+    ind_file_eval = 0
+
+    if not os.path.exists(opt.save_data):
+        os.mkdir(opt.save_data)
+
+    for file_h5 in os.listdir(opt.src_dir):
+        if file_h5.endswith('fast5'):
+
+            output_prefix_feature = 'src-eval.txt' if ind_file_eval < number_file_eval else 'src-train.txt'
+            output_prefix_label = 'tgt-eval.txt' if ind_file_eval < number_file_eval else 'tgt-train.txt'
+
+            output_state = extract_fast5(os.path.join(opt.src_dir,file_h5),
+                                         opt.save_data,
+                                         output_prefix_feature,
+                                         output_prefix_label,
+                                         opt.basecall_group,
+                                         opt.basecall_subgroup,
+                                         opt.normalization,
+                                         opt.src_seq_length)
+            if output_state:
+                if ind_file_eval < number_file_eval:
+                    ind_file_eval += 1
+                else:
+                    ind_file_train += 1
+
+    # update train and valid options with files just created
+    opt.train_src = os.path.join(opt.save_data,'src-train')
+    opt.train_tgt = os.path.join(opt.save_data,'tgt-train')
+    opt.valid_src = os.path.join(opt.save_data,'src-eval')
+    opt.valid_tgt = os.path.join(opt.save_data,'tgt-valid')
+
+    opt.data_type = 'nano'
 
 
 def check_existing_pt_files(opt):
@@ -104,12 +143,12 @@ def build_save_dataset(corpus_type, fields, opt):
             tgt_seq_len=opt.tgt_seq_length,
             src_seq_length_trunc=opt.src_seq_length_trunc,
             tgt_seq_length_trunc=opt.tgt_seq_length_trunc,
-            dynamic_dict=opt.dynamic_dict,
+            # dynamic_dict=opt.dynamic_dict,
             sample_rate=opt.sample_rate,
             window_size=opt.window_size,
             window_stride=opt.window_stride,
             window=opt.window,
-            image_channel_size=opt.image_channel_size,
+            # image_channel_size=opt.image_channel_size,
             use_filter_pred=corpus_type == 'train' or opt.filter_valid
         )
 
@@ -133,9 +172,14 @@ def build_save_dataset(corpus_type, fields, opt):
 
 def build_save_vocab(train_dataset, fields, opt):
     fields = inputters.build_vocab(
-        train_dataset, fields, opt.data_type, opt.share_vocab,
-        opt.src_vocab, opt.src_vocab_size, opt.src_words_min_frequency,
-        opt.tgt_vocab, opt.tgt_vocab_size, opt.tgt_words_min_frequency
+        train_dataset, fields, opt.data_type
+        # opt.share_vocab,
+        # opt.src_vocab,
+        # opt.src_vocab_size,
+        # opt.src_words_min_frequency,
+        # opt.tgt_vocab,
+        # opt.tgt_vocab_size,
+        # opt.tgt_words_min_frequency
     )
 
     vocab_path = opt.save_data + '.vocab.pt'
@@ -163,17 +207,20 @@ def main():
         "-shuffle is not implemented. Please shuffle \
         your data before pre-processing."
 
-    assert os.path.isfile(opt.train_src) and os.path.isfile(opt.train_tgt), \
-        "Please check path of your train src and tgt files!"
+    init_fast5(opt, 10)
+    # assert os.path.isfile(opt.train_src) and os.path.isfile(opt.train_tgt), \
+    #     "Please check path of your train src and tgt files!"
 
-    assert os.path.isfile(opt.valid_src) and os.path.isfile(opt.valid_tgt), \
-        "Please check path of your valid src and tgt files!"
+    # assert os.path.isfile(opt.valid_src) and os.path.isfile(opt.valid_tgt), \
+    #     "Please check path of your valid src and tgt files!"
 
     init_logger(opt.log_file)
     logger.info("Extracting features...")
 
-    src_nfeats = count_features(opt.train_src) if opt.data_type == 'text' \
-        else 0
+    # src_nfeats = count_features(opt.train_src) if opt.data_type == 'text' \
+    #     else 0
+    src_nfeats = 0
+
     tgt_nfeats = count_features(opt.train_tgt)  # tgt always text so far
     logger.info(" * number of source features: %d." % src_nfeats)
     logger.info(" * number of target features: %d." % tgt_nfeats)
