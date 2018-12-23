@@ -22,6 +22,21 @@ import Tools.opts as opts
 
 def init_fast5(opt, number_file_eval):
     """ extract every h5 file of src_dir into segments and save to train/eval.txt """
+
+    # update train and valid options with files just created
+    opt.train_src = os.path.join(opt.save_data, 'src-train.txt')
+    opt.train_tgt = os.path.join(opt.save_data, 'tgt-train.txt')
+    opt.valid_src = os.path.join(opt.save_data, 'src-eval.txt')
+    opt.valid_tgt = os.path.join(opt.save_data, 'tgt-eval.txt')
+    opt.data_type = 'nano'
+
+    if os.path.exists(opt.train_src) and \
+            os.path.exists(opt.train_tgt) and \
+            os.path.exists(opt.valid_src) and \
+            os.path.exists(opt.valid_tgt):
+        opt.src_dir = opt.save_data
+        return
+
     ind_file_train = 0
     ind_file_eval = 0
 
@@ -48,18 +63,12 @@ def init_fast5(opt, number_file_eval):
                 else:
                     ind_file_train += 1
 
-    # update train and valid options with files just created
-    opt.train_src = os.path.join(opt.save_data,'src-train')
-    opt.train_tgt = os.path.join(opt.save_data,'tgt-train')
-    opt.valid_src = os.path.join(opt.save_data,'src-eval')
-    opt.valid_tgt = os.path.join(opt.save_data,'tgt-valid')
-
-    opt.data_type = 'nano'
+    opt.src_dir = opt.save_data
 
 
 def check_existing_pt_files(opt):
     """ Check if there are existing .pt files to avoid overwriting them """
-    pattern = opt.save_data + '.{}*.pt'
+    pattern = opt.save_data + '/'+opt.prefix+'.{}*.pt'
     for t in ['train', 'valid', 'vocab']:
         path = pattern.format(t)
         if glob.glob(path):
@@ -144,6 +153,7 @@ def build_save_dataset(corpus_type, fields, opt):
             src_seq_length_trunc=opt.src_seq_length_trunc,
             tgt_seq_length_trunc=opt.tgt_seq_length_trunc,
             # dynamic_dict=opt.dynamic_dict,
+            flag_fft=opt.fft,
             sample_rate=opt.sample_rate,
             window_size=opt.window_size,
             window_stride=opt.window_stride,
@@ -152,7 +162,8 @@ def build_save_dataset(corpus_type, fields, opt):
             use_filter_pred=corpus_type == 'train' or opt.filter_valid
         )
 
-        data_path = "{:s}.{:s}.{:d}.pt".format(opt.save_data, corpus_type, i)
+        # data_path = "{:s}.{:s}.{:d}.pt".format(opt.save_data, corpus_type, i)
+        data_path = "{:s}/{:s}.{:s}.{:d}.pt".format(opt.save_data, opt.prefix, corpus_type, i)
         dataset_paths.append(data_path)
 
         logger.info(" * saving %sth %s data shard to %s."
@@ -182,27 +193,16 @@ def build_save_vocab(train_dataset, fields, opt):
         # opt.tgt_words_min_frequency
     )
 
-    vocab_path = opt.save_data + '.vocab.pt'
+    vocab_path = opt.save_data + '/'+opt.prefix+'.vocab.pt'
     torch.save(inputters.save_fields_to_vocab(fields), vocab_path)
-
-
-def count_features(path):
-    """
-    path: location of a corpus file with whitespace-delimited tokens and
-                    ￨-delimited features within the token
-    returns: the number of features in the dataset
-    """
-    with codecs.open(path, "r", "utf-8") as f:
-        first_tok = f.readline().split(None, 1)[0]
-        return len(first_tok.split(u"￨")) - 1
 
 
 def main():
     opt = parse_args()
 
-    assert opt.max_shard_size == 0, \
-        "-max_shard_size is deprecated. Please use \
-        -shard_size (number of examples) instead."
+    # assert opt.max_shard_size == 0, \
+    #     "-max_shard_size is deprecated. Please use \
+    #     -shard_size (number of examples) instead."
     assert opt.shuffle == 0, \
         "-shuffle is not implemented. Please shuffle \
         your data before pre-processing."
@@ -217,11 +217,9 @@ def main():
     init_logger(opt.log_file)
     logger.info("Extracting features...")
 
-    # src_nfeats = count_features(opt.train_src) if opt.data_type == 'text' \
-    #     else 0
     src_nfeats = 0
+    tgt_nfeats = 0  # tgt always text so far
 
-    tgt_nfeats = count_features(opt.train_tgt)  # tgt always text so far
     logger.info(" * number of source features: %d." % src_nfeats)
     logger.info(" * number of target features: %d." % tgt_nfeats)
 

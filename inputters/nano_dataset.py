@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    DNADataset
+    NanoDataset
 """
 import codecs
 import os
@@ -42,8 +42,10 @@ class NanoDataset(DatasetBase):
         return ex.src.size(1)
 
     @staticmethod
-    def extract_features(audio_path, sample_rate, truncate, window_size,
+    def extract_features(audio_path, sample_rate, truncate, flag_fft, window_size,
                          window_stride, window, normalize_audio):
+        global librosa, np
+        import librosa
         import numpy as np
 
         f_h = open(audio_path, 'r')
@@ -52,12 +54,34 @@ class NanoDataset(DatasetBase):
             signal += [float(x) for x in line.split()]
         signal = np.asarray(signal)
 
+        if truncate and truncate > 0:
+            if signal.size(0) > truncate:
+                sound = signal[:truncate]
+
         if normalize_audio:
             signal = (signal - np.median(signal)) / np.float(robust.mad(signal))
 
-        signal = torch.FloatTensor(signal)
+        if flag_fft:
+            n_fft = int(sample_rate * window_size)
+            win_length = n_fft
+            hop_length = int(sample_rate * window_stride)
+            # STFT
+            d = librosa.stft(signal, n_fft=n_fft, hop_length=hop_length,
+                             win_length=win_length, window=window)
+            spect, _ = librosa.magphase(d)
+            spect = np.log1p(spect)
+            spect = torch.FloatTensor(spect)
+            if normalize_audio:
+                mean = spect.mean()
+                std = spect.std()
+                spect.add_(-mean)
+                spect.div_(std)
+        else:
 
-        return signal
+            spect = torch.FloatTensor(signal)
+            spect.view(1,-1)
+
+        return spect
 
     @classmethod
     def make_examples(
@@ -65,6 +89,7 @@ class NanoDataset(DatasetBase):
             path,
             src_dir,
             side,
+            flag_fft,
             sample_rate,
             window_size,
             window_stride,
@@ -102,7 +127,7 @@ class NanoDataset(DatasetBase):
                     'audio path %s not found' % (line.strip())
 
                 spect = NanoDataset.extract_features(
-                    audio_path, sample_rate, truncate, window_size,
+                    audio_path, sample_rate, truncate, flag_fft, window_size,
                     window_stride, window, normalize_audio
                 )
 

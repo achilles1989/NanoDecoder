@@ -469,9 +469,9 @@ def train_opts(parser):
                        This is also the name of the run.
                        """)
 
-    group = parser.add_argument_group('Speech')
+    group = parser.add_argument_group('SpeechLike')
     # Options most relevant to speech
-    group.add('--sample_rate', '-sample_rate', type=int, default=16000,
+    group.add('--sample_rate', '-sample_rate', type=int, default=4000,
               help="Sample rate.")
     group.add('--window_size', '-window_size', type=float, default=.02,
               help="Window size for spectrogram in seconds.")

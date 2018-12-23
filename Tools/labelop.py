@@ -26,7 +26,7 @@ def extract_fast5(input_file_path, output_path, output_prefix_feature, output_pr
 
     try:
         ind_segment = 0
-        (raw_data, raw_label, raw_start, raw_length, sampling_rate) = get_label_raw(input_file_path, basecall_group, basecall_subgroup)
+        (raw_data, raw_label, raw_start, raw_length) = get_label_raw(input_file_path, basecall_group, basecall_subgroup)
     except:
         return False
     raw_data = raw_data[::-1]
@@ -51,17 +51,21 @@ def extract_fast5(input_file_path, output_path, output_prefix_feature, output_pr
                 pre_index = index
                 continue
 
-            pre_index = index - 1
-            pre_start = raw_start[index - 1]
 
             filename_segment = os.path.split(input_file_path)[1].split('.')[0]+'.'+str(ind_segment)+'.txt'
-
+            if not os.path.exists(os.path.join(output_path, 'segments')):
+                os.makedirs(os.path.join(output_path, 'segments'))
             with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
-                    os.path.join(output_path, output_prefix_feature), 'w+') as file_output_feature_summary, open(
-                    os.path.join(output_path, output_prefix_label), 'w+') as file_output_label:
-                file_output_feature.writelines(' '.join(raw_data[pre_start:raw_start[index - 1]]))
-                file_output_feature_summary.writelines(filename_segment+'\n')
-                file_output_label.writelines(' '.join([DNA_BASE[x.decode('UTF-8')] for x in label_ind]) + '\n')
+                    os.path.join(output_path, output_prefix_feature), 'a+') as file_output_feature_summary, open(
+                    os.path.join(output_path, output_prefix_label), 'a+') as file_output_label:
+
+                file_output_feature.writelines(' '.join([str(x) for x in raw_data[pre_start:raw_start[index - 1]]]))
+                file_output_feature_summary.writelines('segments/'+filename_segment+'\n')
+                file_output_label.writelines(' '.join([x.decode('UTF-8') for x in label_ind]) + '\n')
+
+            ind_segment += 1
+            pre_index = index - 1
+            pre_start = raw_start[index - 1]
 
         if raw_start[index] - pre_start > max_length:
             # Skip a single event segment longer than the required signal length

@@ -117,7 +117,7 @@ def get_fields(src_data_type, n_src_features, n_tgt_features):
 
     fields["src"] = Field(
         use_vocab=False, dtype=torch.float,
-        postprocessing=make_nano(), sequential=False)
+        postprocessing=make_nano, sequential=False)
 
     fields["src_lengths"] = Field(
         use_vocab=False, dtype=torch.long, sequential=False)
@@ -235,9 +235,10 @@ def build_dataset(fields, data_type, src,
                   src_seq_len=50, tgt_seq_len=50,
                   src_seq_length_trunc=0, tgt_seq_length_trunc=0,
                   # dynamic_dict=False,
+                  flag_fft=False,
                   sample_rate=0,
                   window_size=0, window_stride=0, window=None,
-                  normalize_audio=True, use_filter_pred=True
+                  normalize_audio=False, use_filter_pred=True
                   # image_channel_size=3
                   ):
     """
@@ -270,7 +271,7 @@ def build_dataset(fields, data_type, src,
     #         window_size, window_stride, window,
     #         normalize_audio, None)
     src_examples_iter = NanoDataset.make_examples(
-        src, src_dir, "src", sample_rate,
+        src, src_dir, "src", flag_fft, sample_rate,
         window_size, window_stride, window,
         normalize_audio, None)
 
@@ -293,7 +294,7 @@ def build_dataset(fields, data_type, src,
     dataset_cls = dataset_classes[data_type]
     dataset = dataset_cls(
         fields, src_examples_iter, tgt_examples_iter,
-        dynamic_dict=dynamic_dict, filter_pred=filter_pred)
+        dynamic_dict=False, filter_pred=filter_pred)
     return dataset
 
 
@@ -378,8 +379,9 @@ def build_vocab(train_dataset_files, fields, data_type
             gc.collect()
 
     _build_field_vocab(
-        fields["tgt"], counters["tgt"],
-        max_size=tgt_vocab_size, min_freq=tgt_words_min_frequency)
+        fields["tgt"], counters["tgt"])
+        # max_size=tgt_vocab_size, min_freq=tgt_words_min_frequency)
+
     logger.info(" * tgt vocab size: %d." % len(fields["tgt"].vocab))
 
     # All datasets have same num of n_tgt_features,

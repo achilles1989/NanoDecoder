@@ -190,6 +190,9 @@ def preprocess_opts(parser):
     group.add_argument('--basecall_subgroup', default='BaseCalled_template',
                         help='Basecall subgroup Nanoraw resquiggle into. Default is BaseCalled_template')
 
+    group.add('--prefix', '-prefix', default='demo',
+              help="prefix filename for pytorch dataset")
+
     group.add('--save_data', '-save_data', required=True,
               help="Output file for the prepared data")
 
@@ -267,7 +270,9 @@ def preprocess_opts(parser):
               default="0")
 
     # Options most relevant to speech
-    group = parser.add_argument_group('Speech')
+    group = parser.add_argument_group('SpeechLike')
+    group.add('--fft', '-fft', type=bool, default=False,
+              help="whether to use fft to process signals.")
     group.add('--sample_rate', '-sample_rate', type=int, default=4000,
               help="Sample rate.")
     group.add('--window_size', '-window_size', type=float, default=.02,
