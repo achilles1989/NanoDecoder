@@ -9,13 +9,13 @@ import os
 import random
 import torch
 
-import onmt.opts as opts
+from models import opts as opts
 
-from onmt.inputters.inputter import build_dataset_iter, lazily_load_dataset, \
+from inputters.inputter import build_dataset_iter, lazily_load_dataset, \
     load_fields, _collect_report_features
-from model_builder import build_model
+from models.model_builder import build_model
 from onmt.utils.optimizers import build_optim
-from onmt.trainer import build_trainer
+from models.trainer import build_trainer
 from onmt.models import build_model_saver
 from onmt.utils.logging import init_logger, logger
 
@@ -55,7 +55,7 @@ def training_opt_postprocessing(opt, device_id):
         # this check is here because audio allows the encoder and decoder to
         # be different sizes, but other model types do not yet
         same_size = opt.enc_rnn_size == opt.dec_rnn_size
-        assert opt.model_type == 'audio' or same_size, \
+        assert opt.model_type == 'nano' or same_size, \
             "The encoder and decoder rnns must be the same size for now"
 
     opt.brnn = opt.encoder_type == "brnn"

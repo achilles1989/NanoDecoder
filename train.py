@@ -8,11 +8,11 @@ import os
 import signal
 import torch
 
-import Tools.opts as opts
+from models import opts as opts
 import onmt.utils.distributed
 
-from onmt.utils.logging import logger
-from train_single import main as single_main
+from utils.logging import logger
+from models.train_single import main as single_main
 
 
 def main(opt):
@@ -117,4 +117,5 @@ if __name__ == "__main__":
     opts.train_opts(parser)
 
     opt = parser.parse_args()
+    opt.model_type = 'nano'
     main(opt)

@@ -14,9 +14,8 @@ from torchtext.vocab import Vocab
 
 from onmt.inputters.dataset_base import PAD_WORD, BOS_WORD, EOS_WORD
 from onmt.inputters.text_dataset import TextDataset
-from onmt.inputters.image_dataset import ImageDataset
-from onmt.inputters.audio_dataset import AudioDataset
-
+# from onmt.inputters.image_dataset import ImageDataset
+# from onmt.inputters.audio_dataset import AudioDataset
 from inputters.nano_dataset import NanoDataset
 from onmt.utils.logging import logger
 
@@ -233,7 +232,8 @@ def filter_example(ex, use_src_len=True, use_tgt_len=True,
 def build_dataset(fields, data_type, src,
                   src_dir=None, tgt=None,
                   src_seq_len=50, tgt_seq_len=50,
-                  src_seq_length_trunc=0, tgt_seq_length_trunc=0,
+                  src_seq_length_trunc=0,
+                  tgt_seq_length_trunc=0,
                   # dynamic_dict=False,
                   flag_fft=False,
                   sample_rate=0,
@@ -291,8 +291,8 @@ def build_dataset(fields, data_type, src,
     else:
         filter_pred = None
 
-    dataset_cls = dataset_classes[data_type]
-    dataset = dataset_cls(
+    # dataset_cls = dataset_classes[data_type]
+    dataset = NanoDataset(
         fields, src_examples_iter, tgt_examples_iter,
         dynamic_dict=False, filter_pred=filter_pred)
     return dataset
@@ -605,12 +605,16 @@ def lazily_load_dataset(corpus_type, opt):
 
 
 def load_fields(dataset, opt, checkpoint):
-    if isinstance(dataset, TextDataset):
-        data_type = 'text'
-    elif isinstance(dataset, AudioDataset):
-        data_type = 'audio'
-    else:
-        data_type = 'img'
+
+    # if isinstance(dataset, TextDataset):
+    #     data_type = 'text'
+    # elif isinstance(dataset, AudioDataset):
+    #     data_type = 'audio'
+    # else:
+    #     data_type = 'img'
+    if isinstance(dataset, NanoDataset):
+        data_type = 'nano'
+
     if checkpoint is not None:
         logger.info('Loading vocab from checkpoint at %s.' % opt.train_from)
         vocab = checkpoint['vocab']
@@ -622,13 +626,14 @@ def load_fields(dataset, opt, checkpoint):
     ex_fields = dataset.examples[0].__dict__
     fields = {k: f for k, f in fields.items() if k in ex_fields}
 
-    if data_type == 'text':
-        logger.info(' * vocabulary size. source = %d; target = %d' %
-                    (len(fields['src'].vocab), len(fields['tgt'].vocab)))
-    else:
-        logger.info(' * vocabulary size. target = %d' %
-                    (len(fields['tgt'].vocab)))
-
+    # if data_type == 'text':
+    #     logger.info(' * vocabulary size. source = %d; target = %d' %
+    #                 (len(fields['src'].vocab), len(fields['tgt'].vocab)))
+    # else:
+    #     logger.info(' * vocabulary size. target = %d' %
+    #                 (len(fields['tgt'].vocab)))
+    logger.info(' * vocabulary size. target = %d' %
+                (len(fields['tgt'].vocab)))
     return fields
 
 

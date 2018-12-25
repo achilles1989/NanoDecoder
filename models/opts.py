@@ -60,10 +60,10 @@ def model_opts(parser):
 
     # Encoder-Decoder Options
     group = parser.add_argument_group('Model- Encoder-Decoder')
-    group.add('--model_type', '-model_type', default='text',
-              help="""Type of source model to use. Allows
-                       the system to incorporate non-text inputs.
-                       Options are [text|img|audio].""")
+    # group.add('--model_type', '-model_type', default='text',
+    #           help="""Type of source model to use. Allows
+    #                    the system to incorporate non-text inputs.
+    #                    Options are [text|img|audio].""")
 
     group.add('--encoder_type', '-encoder_type', type=str, default='rnn',
               choices=['rnn', 'brnn', 'mean', 'transformer', 'cnn'],
@@ -183,7 +183,7 @@ def preprocess_opts(parser):
               help="Source directory for fast5 files.")
 
     # H5 file config
-    group.add_argument('-n', '--normalization', default='median',
+    group.add_argument('--normalization_raw', default='median',
                         help="The method of normalization applied to signal, Median(default):robust median normalization, 'mean': mean normalization, 'None': no normalizaion")
     group.add_argument('--basecall_group', default='RawGenomeCorrected_000',
                         help='Basecall group Nanoraw resquiggle into. Default is Basecall_1D_000')
@@ -238,12 +238,12 @@ def preprocess_opts(parser):
 
     # Truncation options, for text corpus
     group = parser.add_argument_group('Pruning')
-    group.add('--src_seq_length', '-src_seq_length', type=int, default=50,
+    group.add('--src_seq_length', '-src_seq_length', type=int, default=512,
               help="Maximum source sequence length")
     group.add('--src_seq_length_trunc', '-src_seq_length_trunc',
               type=int, default=0,
               help="Truncate source sequence length.")
-    group.add('--tgt_seq_length', '-tgt_seq_length', type=int, default=50,
+    group.add('--tgt_seq_length', '-tgt_seq_length', type=int, default=100,
               help="Maximum target sequence length to keep.")
     group.add('--tgt_seq_length_trunc', '-tgt_seq_length_trunc',
               type=int, default=0,
@@ -275,9 +275,9 @@ def preprocess_opts(parser):
               help="whether to use fft to process signals.")
     group.add('--sample_rate', '-sample_rate', type=int, default=4000,
               help="Sample rate.")
-    group.add('--window_size', '-window_size', type=float, default=.02,
+    group.add('--window_size', '-window_size', type=float, default=.075,
               help="Window size for spectrogram in seconds.")
-    group.add('--window_stride', '-window_stride', type=float, default=.01,
+    group.add('--window_stride', '-window_stride', type=float, default=.0075,
               help="Window stride for spectrogram in seconds.")
     group.add('--window', '-window', default='hamming',
               help="Window type for spectrogram generation.")
@@ -482,18 +482,18 @@ def train_opts(parser):
                        This is also the name of the run.
                        """)
 
-    group = parser.add_argument_group('Speech')
+    group = parser.add_argument_group('SpeechLike')
     # Options most relevant to speech
-    group.add('--sample_rate', '-sample_rate', type=int, default=16000,
+    group.add('--sample_rate', '-sample_rate', type=int, default=4000,
               help="Sample rate.")
-    group.add('--window_size', '-window_size', type=float, default=.02,
+    group.add('--window_size', '-window_size', type=float, default=.075,
               help="Window size for spectrogram in seconds.")
 
     # Option most relevant to image input
-    group.add('--image_channel_size', '-image_channel_size',
-              type=int, default=3, choices=[3, 1],
-              help="""Using grayscale image can training
-                       model faster and smaller""")
+    # group.add('--image_channel_size', '-image_channel_size',
+    #           type=int, default=3, choices=[3, 1],
+    #           help="""Using grayscale image can training
+    #                    model faster and smaller""")
 
 
 def translate_opts(parser):
@@ -513,19 +513,27 @@ def translate_opts(parser):
               zero probability.""")
 
     group = parser.add_argument_group('Data')
-    group.add('--data_type', '-data_type', default="text",
-              help="Type of the source input. Options: [text|img].")
+    # group.add('--data_type', '-data_type', default="text",
+    #           help="Type of the source input. Options: [text|img].")
 
-    group.add('--src', '-src', required=True,
-                       help="""Source sequence to decode (one line per
-                       sequence)""")
+    # H5 file config
+
+    group.add_argument('--normalization_raw', default='median',
+                       help="The method of normalization applied to signal, Median(default):robust median normalization, 'mean': mean normalization, 'None': no normalizaion")
+    # group.add('--src', '-src', required=True,
+    #                    help="""Source sequence to decode (one line per
+    #                    sequence)""")
     group.add('--src_dir', '-src_dir', default="",
               help='Source directory for image or audio files')
-    group.add('--tgt', '-tgt',
-                       help='True target sequence (optional)')
-    group.add('--output', '-output', default='pred.txt',
-              help="""Path to output the predictions (each line will
-                       be the decoded sequence""")
+    group.add('--src_seq_length', '-src_seq_length', type=int, default=512,
+              help="Maximum source sequence length")
+    # group.add('--tgt', '-tgt',
+    #                    help='True target sequence (optional)')
+    # group.add('--output', '-output', default='pred.txt',
+    #           help="""Path to output the predictions (each line will
+    #                    be the decoded sequence""")
+    group.add('--save_data', '-save_data', required=True,
+              help="Output folder for translated fasta")
     group.add('--report_bleu', '-report_bleu', action='store_true',
               help="""Report bleu score after translation,
                        call tools/multi-bleu.perl on command line""")
@@ -534,10 +542,10 @@ def translate_opts(parser):
                        call tools/test_rouge.py on command line""")
 
     # Options most relevant to summarization.
-    group.add('--dynamic_dict', '-dynamic_dict', action='store_true',
-              help="Create dynamic dictionaries")
-    group.add('--share_vocab', '-share_vocab', action='store_true',
-              help="Share source and target vocabulary")
+    # group.add('--dynamic_dict', '-dynamic_dict', action='store_true',
+    #           help="Create dynamic dictionaries")
+    # group.add('--share_vocab', '-share_vocab', action='store_true',
+    #           help="Share source and target vocabulary")
 
     group = parser.add_argument_group('Beam')
     group.add('--fast', '-fast', action="store_true",
@@ -608,21 +616,23 @@ def translate_opts(parser):
                        help="Device to run on")
 
     # Options most relevant to speech.
-    group = parser.add_argument_group('Speech')
-    group.add('--sample_rate', '-sample_rate', type=int, default=16000,
+    group = parser.add_argument_group('SpeechLike')
+    group.add('--fft', '-fft', type=bool, default=False,
+              help="whether to use fft to process signals.")
+    group.add('--sample_rate', '-sample_rate', type=int, default=4000,
               help="Sample rate.")
-    group.add('--window_size', '-window_size', type=float, default=.02,
+    group.add('--window_size', '-window_size', type=float, default=.075,
               help='Window size for spectrogram in seconds')
-    group.add('--window_stride', '-window_stride', type=float, default=.01,
+    group.add('--window_stride', '-window_stride', type=float, default=.00075,
               help='Window stride for spectrogram in seconds')
     group.add('--window', '-window', default='hamming',
               help='Window type for spectrogram generation')
 
     # Option most relevant to image input
-    group.add('--image_channel_size', '-image_channel_size',
-              type=int, default=3, choices=[3, 1],
-              help="""Using grayscale image can training
-                       model faster and smaller""")
+    # group.add('--image_channel_size', '-image_channel_size',
+    #           type=int, default=3, choices=[3, 1],
+    #           help="""Using grayscale image can training
+    #                    model faster and smaller""")
 
 
 def add_md_help_argument(parser):

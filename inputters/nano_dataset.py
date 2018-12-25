@@ -56,10 +56,7 @@ class NanoDataset(DatasetBase):
 
         if truncate and truncate > 0:
             if signal.size(0) > truncate:
-                sound = signal[:truncate]
-
-        if normalize_audio:
-            signal = (signal - np.median(signal)) / np.float(robust.mad(signal))
+                signal = signal[:truncate]
 
         if flag_fft:
             n_fft = int(sample_rate * window_size)

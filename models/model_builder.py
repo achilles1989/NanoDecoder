@@ -7,14 +7,15 @@ import torch
 import torch.nn as nn
 from torch.nn.init import xavier_uniform_
 
-import onmt.inputters as inputters
+import inputters.inputter as inputters
 import onmt.modules
 from onmt.encoders.rnn_encoder import RNNEncoder
 from onmt.encoders.transformer import TransformerEncoder
 from onmt.encoders.cnn_encoder import CNNEncoder
 from onmt.encoders.mean_encoder import MeanEncoder
-from onmt.encoders.audio_encoder import AudioEncoder
-from onmt.encoders.image_encoder import ImageEncoder
+# from onmt.encoders.audio_encoder import AudioEncoder
+# from onmt.encoders.image_encoder import ImageEncoder
+from encoder.nano_encoder import NanoEncoder
 
 from onmt.decoders.decoder import InputFeedRNNDecoder, StdRNNDecoder
 from onmt.decoders.transformer import TransformerDecoder
@@ -173,8 +174,8 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None):
     Returns:
         the NMTModel.
     """
-    assert model_opt.model_type in ["text", "img", "audio"], \
-        "Unsupported model type %s" % model_opt.model_type
+    # assert model_opt.model_type in ["text", "img", "audio"], \
+    #     "Unsupported model type %s" % model_opt.model_type
     # assert model_opt.model_type == 'nano', \
     #     "model type should be nano" % model_opt.model_type
     # for backward compatibility
@@ -217,20 +218,18 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None):
     #         model_opt.window_size
     #     )
 
-    if model_opt.model_type == "audio":
-        encoder = AudioEncoder(
-                model_opt.rnn_type,
-                model_opt.enc_layers,
-                model_opt.dec_layers,
-                model_opt.brnn,
-                model_opt.enc_rnn_size,
-                model_opt.dec_rnn_size,
-                model_opt.audio_enc_pooling,
-                model_opt.dropout,
-                model_opt.sample_rate,
-                model_opt.window_size
-            )
-
+    encoder = NanoEncoder(
+            model_opt.rnn_type,
+            model_opt.enc_layers,
+            model_opt.dec_layers,
+            model_opt.brnn,
+            model_opt.enc_rnn_size,
+            model_opt.dec_rnn_size,
+            model_opt.audio_enc_pooling,
+            model_opt.dropout,
+            model_opt.sample_rate,
+            model_opt.window_size
+        )
 
     # Build decoder.
     feat_fields = [fields[k]

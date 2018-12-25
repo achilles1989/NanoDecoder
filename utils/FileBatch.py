@@ -15,7 +15,7 @@ import sys
 import numpy as np
 from statsmodels import robust
 
-import Tools.labelop as labelop
+import utils.labelop as labelop
 
 # DNA_BASE = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'M':4}
 # DNA_IDX = ['A', 'C', 'G', 'T','M']

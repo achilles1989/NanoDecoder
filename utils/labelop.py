@@ -29,7 +29,6 @@ def extract_fast5(input_file_path, output_path, output_prefix_feature, output_pr
         (raw_data, raw_label, raw_start, raw_length) = get_label_raw(input_file_path, basecall_group, basecall_subgroup)
     except:
         return False
-    raw_data = raw_data[::-1]
     if normalization == 'mean':
         raw_data = (raw_data - np.median(raw_data)) / np.float(np.std(raw_data))
     elif normalization == 'median':
@@ -51,7 +50,6 @@ def extract_fast5(input_file_path, output_path, output_prefix_feature, output_pr
                 pre_index = index
                 continue
 
-
             filename_segment = os.path.split(input_file_path)[1].split('.')[0]+'.'+str(ind_segment)+'.txt'
             if not os.path.exists(os.path.join(output_path, 'segments')):
                 os.makedirs(os.path.join(output_path, 'segments'))
@@ -72,6 +70,53 @@ def extract_fast5(input_file_path, output_path, output_prefix_feature, output_pr
             pre_index = index
             pre_start = raw_start[index]
 
+    return True
+
+
+def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization, max_length, signal_stride):
+    ##Open file
+    try:
+        ind_segment = 0
+        fast5_data = h5py.File(input_file_path, 'r')
+    except IOError:
+        raise IOError('Error opening file. Likely a corrupted file.')
+
+    # Get raw data
+    try:
+        raw_data = list(fast5_data['/Raw/Reads/'].values())[0]
+        # raw_attrs = raw_dat.attrs
+        raw_data = raw_data['Signal'].value
+
+        if normalization == 'mean':
+            raw_data = (raw_data - np.median(raw_data)) / np.float(np.std(raw_data))
+        elif normalization == 'median':
+            raw_data = (raw_data - np.median(raw_data)) / np.float(robust.mad(raw_data))
+
+        if not os.path.exists(os.path.join(output_path, 'segments')):
+            os.makedirs(os.path.join(output_path, 'segments'))
+
+        for ind_segment in range(1,len(raw_data)/signal_stride):
+
+            filename_segment = os.path.split(input_file_path)[1].split('.')[0] + '.' + str(ind_segment) + '.txt'
+
+            segment_start = ind_segment*max_length+1
+            segment_end = (ind_segment+1)*max_length
+            segment_end = segment_end if segment_end < len(raw_data) else len(raw_data)
+
+            with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
+                    os.path.join(output_path, output_prefix), 'a+') as file_output_feature_summary:
+
+                file_output_feature.writelines(' '.join([str(x) for x in raw_data[segment_start:segment_end]]))
+                file_output_feature_summary.writelines('segments/' + filename_segment + '\n')
+
+            if segment_end >= len(raw_data):
+                break
+    except:
+        raise RuntimeError(
+            'Raw data is not stored in Raw/Reads/Read_[read#] so ' +
+            'new segments cannot be identified.')
+        return False
+    fast5_data.close()
     return True
 
 

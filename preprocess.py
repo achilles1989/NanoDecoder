@@ -12,12 +12,11 @@ import os
 import codecs
 import torch
 
-from Tools.labelop import extract_fast5
-from onmt.utils.logging import init_logger, logger
+from utils.labelop import extract_fast5
+from utils.logging import init_logger, logger
 
 import inputters.inputter as inputters
-import Tools.opts as opts
-
+from models import opts as opts
 
 
 def init_fast5(opt, number_file_eval):
@@ -55,7 +54,7 @@ def init_fast5(opt, number_file_eval):
                                          output_prefix_label,
                                          opt.basecall_group,
                                          opt.basecall_subgroup,
-                                         opt.normalization,
+                                         opt.normalization_raw,
                                          opt.src_seq_length)
             if output_state:
                 if ind_file_eval < number_file_eval:
