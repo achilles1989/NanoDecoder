@@ -623,7 +623,7 @@ def translate_opts(parser):
               help="Sample rate.")
     group.add('--window_size', '-window_size', type=float, default=.075,
               help='Window size for spectrogram in seconds')
-    group.add('--window_stride', '-window_stride', type=float, default=.00075,
+    group.add('--window_stride', '-window_stride', type=float, default=.0075,
               help='Window stride for spectrogram in seconds')
     group.add('--window', '-window', default='hamming',
               help='Window type for spectrogram generation')

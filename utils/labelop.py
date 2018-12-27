@@ -9,6 +9,7 @@ from __future__ import print_function
 import os
 import h5py
 import numpy as np
+import math
 from six.moves import zip
 from statsmodels import robust
 
@@ -95,12 +96,12 @@ def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization
         if not os.path.exists(os.path.join(output_path, 'segments')):
             os.makedirs(os.path.join(output_path, 'segments'))
 
-        for ind_segment in range(1,len(raw_data)/signal_stride):
+        for ind_segment in range(0,math.ceil(raw_data.size/signal_stride)):
 
             filename_segment = os.path.split(input_file_path)[1].split('.')[0] + '.' + str(ind_segment) + '.txt'
 
-            segment_start = ind_segment*max_length+1
-            segment_end = (ind_segment+1)*max_length
+            segment_start = ind_segment*signal_stride
+            segment_end = ind_segment*signal_stride + max_length
             segment_end = segment_end if segment_end < len(raw_data) else len(raw_data)
 
             with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
@@ -111,12 +112,14 @@ def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization
 
             if segment_end >= len(raw_data):
                 break
+
+        fast5_data.close()
     except:
         raise RuntimeError(
             'Raw data is not stored in Raw/Reads/Read_[read#] so ' +
             'new segments cannot be identified.')
         return False
-    fast5_data.close()
+
     return True
 
 

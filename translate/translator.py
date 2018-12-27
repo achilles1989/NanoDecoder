@@ -25,6 +25,7 @@ def init_fast5(opt):
 
     # update train and valid options with files just created
     opt.src = os.path.join(opt.save_data, 'src.txt')
+    opt.tgt = None
     opt.data_type = 'nano'
     opt.output = os.path.join(opt.save_data, 'pred.txt')
 
@@ -45,7 +46,7 @@ def init_fast5(opt):
                                          output_prefix_feature,
                                          opt.normalization_raw,
                                          opt.src_seq_length,
-                                         opt.window_stride)
+                                         math.floor(opt.sample_rate * opt.window_stride))
 
     opt.src_dir = opt.save_data
 
@@ -122,6 +123,8 @@ class Translator(object):
         self.dump_beam = opt.dump_beam
         self.block_ngram_repeat = opt.block_ngram_repeat
         self.ignore_when_blocking = set(opt.ignore_when_blocking)
+
+        self.flag_fft = opt.fft
         self.sample_rate = opt.sample_rate
         self.window_size = opt.window_size
         self.window_stride = opt.window_stride
@@ -199,8 +202,9 @@ class Translator(object):
             window_stride=self.window_stride,
             window=self.window,
             use_filter_pred=self.use_filter_pred,
+            flag_fft= self.flag_fft
             # image_channel_size=self.image_channel_size,
-            dynamic_dict=self.copy_attn
+            # dynamic_dict=self.copy_attn
         )
 
         cur_device = "cuda" if self.cuda else "cpu"
