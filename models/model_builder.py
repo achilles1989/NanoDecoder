@@ -261,8 +261,8 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None):
             nn.Linear(model_opt.dec_rnn_size, len(fields["tgt"].vocab)),
             gen_func
         )
-        if model_opt.share_decoder_embeddings:
-            generator[0].weight = decoder.embeddings.word_lut.weight
+        #if model_opt.share_decoder_embeddings:
+        #    generator[0].weight = decoder.embeddings.word_lut.weight
     else:
         vocab_size = len(fields["tgt"].vocab)
         pad_idx = fields["tgt"].vocab.stoi[fields["tgt"].pad_token]

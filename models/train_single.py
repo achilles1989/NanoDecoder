@@ -111,7 +111,7 @@ def main(opt, device_id):
     # (All datasets have the same data_type).
     first_dataset = next(lazily_load_dataset("train", opt))
     data_type = first_dataset.data_type
-
+    # input_size = first_dataset.examples.
     # Load fields generated from preprocess phase.
     fields = load_fields(first_dataset, opt, checkpoint)
 

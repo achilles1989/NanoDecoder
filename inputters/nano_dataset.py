@@ -75,8 +75,7 @@ class NanoDataset(DatasetBase):
                 spect.div_(std)
         else:
 
-            spect = torch.FloatTensor(signal)
-            spect.view(1,-1)
+            spect = torch.FloatTensor(signal).view(1,-1)
 
         return spect
 

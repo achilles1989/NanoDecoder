@@ -117,7 +117,8 @@ class Trainer(object):
 
     def train(self, train_iter_fct, valid_iter_fct, train_steps, valid_steps):
         """
-        The main training loops.
+        The main training loops.+
+
         by iterating over training data (i.e. `train_iter_fct`)
         and running validation (i.e. iterating over `valid_iter_fct`
 
