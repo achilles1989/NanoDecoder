@@ -1,1 +1,9 @@
 torch==1.0.0
+six
+pandas
+numpy
+h5py
+tqdm
+future
+configargparse
+git+https://github.com/pytorch/text
