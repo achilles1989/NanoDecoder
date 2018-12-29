@@ -18,37 +18,57 @@ import models.opts as opts
 from utils.labelop import extract_fast5_raw
 from translate.translation import TranslationBuilder
 import onmt.decoders.ensemble
+import multiprocessing
 
 
 def init_fast5(opt):
     """ extract every h5 file of src_dir into segments and save to train/eval.txt """
 
     # update train and valid options with files just created
-    opt.src = os.path.join(opt.save_data, 'src.txt')
-    opt.tgt = None
-    opt.data_type = 'nano'
-    opt.output = os.path.join(opt.save_data, 'pred.txt')
+    # opt.src = os.path.join(opt.save_data, 'src.txt')
 
-    if os.path.exists(opt.src):
-        opt.src_dir = opt.save_data
-        return
+    # opt.output = os.path.join(opt.save_data, 'pred.txt')
+
+    # if os.path.exists(opt.src):
+    #     opt.src_dir = opt.save_data
+    #     return
 
     if not os.path.exists(opt.save_data):
         os.mkdir(opt.save_data)
 
+    if not os.path.exists(os.path.join(opt.save_data, 'segments')):
+        os.makedirs(os.path.join(opt.save_data, 'segments'))
+
+    if not os.path.exists(os.path.join(opt.save_data, 'src')):
+        os.makedirs(os.path.join(opt.save_data, 'src'))
+
+    if not os.path.exists(os.path.join(opt.save_data, 'result')):
+        os.makedirs(os.path.join(opt.save_data, 'result'))
+
+    pool = multiprocessing.Pool(8)
+
     for file_h5 in os.listdir(opt.src_dir):
         if file_h5.endswith('fast5'):
 
-            output_prefix_feature = 'src.txt'
+            output_prefix_feature = 'src/'+file_h5.split('.fast5')[0] + '.txt'
 
-            extract_fast5_raw(os.path.join(opt.src_dir,file_h5),
+            pool.apply_async(extract_fast5_raw,
+                             (os.path.join(opt.src_dir,file_h5),
                                          opt.save_data,
                                          output_prefix_feature,
                                          opt.normalization_raw,
                                          opt.src_seq_length,
-                                         math.floor(opt.sample_rate * opt.window_stride))
+                                         math.floor(opt.sample_rate * opt.window_stride),))
 
-    opt.src_dir = opt.save_data
+            # extract_fast5_raw(os.path.join(opt.src_dir,file_h5),
+            #                              opt.save_data,
+            #                              output_prefix_feature,
+            #                              opt.normalization_raw,
+            #                              opt.src_seq_length,
+            #                              math.floor(opt.sample_rate * opt.window_stride))
+
+    pool.close()
+    pool.join()
 
 
 def build_translator(opt, report_score=True, logger=None, out_file=None):
@@ -263,10 +283,10 @@ class Translator(object):
                     preds = trans.pred_sents[0]
                     preds.append('</s>')
                     attns = trans.attns[0].tolist()
-                    if self.data_type == 'text':
-                        srcs = trans.src_raw
-                    else:
-                        srcs = [str(item) for item in range(len(attns[0]))]
+                    # if self.data_type == 'text':
+                    #     srcs = trans.src_raw
+                    # else:
+                    srcs = [str(item) for item in range(len(attns[0]))]
                     header_format = "{:>10.10} " + "{:>10.7} " * len(srcs)
                     row_format = "{:>10.10} " + "{:>10.7f} " * len(srcs)
                     output = header_format.format("", *srcs) + '\n'

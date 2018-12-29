@@ -5,7 +5,6 @@ Implementation of "Attention is All You Need"
 import torch
 import torch.nn as nn
 import numpy as np
-import utils.layerNorm
 
 import onmt
 from onmt.modules.position_ffn import PositionwiseFeedForward
@@ -43,8 +42,6 @@ class TransformerDecoderLayer(nn.Module):
         self.feed_forward = PositionwiseFeedForward(d_model, d_ff, dropout)
         self.layer_norm_1 = nn.LayerNorm(d_model, eps=1e-6)
         self.layer_norm_2 = nn.LayerNorm(d_model, eps=1e-6)
-        # self.layer_norm_1 = utils.layerNorm.LayerNorm(d_model)
-        # self.layer_norm_2 = utils.layerNorm.LayerNorm(d_model)
 
         self.dropout = dropout
         self.drop = nn.Dropout(dropout)
@@ -172,7 +169,6 @@ class TransformerDecoder(nn.Module):
                 d_model, attn_type=attn_type)
             self._copy = True
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
-        # self.layer_norm = utils.layerNorm.LayerNorm(d_model)
 
     def init_state(self, src, memory_bank, enc_hidden):
         """ Init decoder state """

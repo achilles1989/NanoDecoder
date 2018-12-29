@@ -3,7 +3,6 @@ Implementation of "Attention is All You Need"
 """
 
 import torch.nn as nn
-import utils.layerNorm
 
 import onmt
 from onmt.encoders.encoder import EncoderBase
@@ -31,7 +30,6 @@ class TransformerEncoderLayer(nn.Module):
             heads, d_model, dropout=dropout)
         self.feed_forward = PositionwiseFeedForward(d_model, d_ff, dropout)
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
-        #self.layer_norm = utils.layerNorm.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
         self.input_size = input_size
 
@@ -103,7 +101,6 @@ class TransformerEncoder(EncoderBase):
         #     [TransformerEncoderLayer(input_size, heads, d_ff, dropout)
         #      for _ in range(num_layers)])
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
-        #self.layer_norm = utils.layerNorm.LayerNorm(d_model)
         self.linear = nn.Linear(input_size, d_model)
 
     def forward(self, src, lengths=None):
@@ -122,7 +119,6 @@ class TransformerEncoder(EncoderBase):
         #padding_idx = self.embeddings.word_padding_idx
         padding_idx = 0
         mask = words.data.eq(padding_idx).unsqueeze(1)  # [B, 1, T]
-        # mask = words.data.eq(padding_idx).unsqueeze(1).expand(w_batch, w_len, w_len)  # [B, 1, T]
         # Run the forward pass of every layer of the tranformer.
         for i in range(self.num_layers):
             out = self.transformer[i](out, mask)

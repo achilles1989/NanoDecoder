@@ -93,9 +93,6 @@ def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization
         elif normalization == 'median':
             raw_data = (raw_data - np.median(raw_data)) / np.float(robust.mad(raw_data))
 
-        if not os.path.exists(os.path.join(output_path, 'segments')):
-            os.makedirs(os.path.join(output_path, 'segments'))
-
         for ind_segment in range(0,math.ceil(raw_data.size/signal_stride)):
 
             filename_segment = os.path.split(input_file_path)[1].split('.')[0] + '.' + str(ind_segment) + '.txt'
@@ -105,7 +102,7 @@ def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization
             segment_end = segment_end if segment_end < len(raw_data) else len(raw_data)
 
             with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
-                    os.path.join(output_path, output_prefix), 'a+') as file_output_feature_summary:
+                    os.path.join(output_path, 'src', output_prefix), 'a+') as file_output_feature_summary:
 
                 file_output_feature.writelines(' '.join([str(x) for x in raw_data[segment_start:segment_end]]))
                 file_output_feature_summary.writelines('segments/' + filename_segment + '\n')
@@ -316,6 +313,56 @@ def write_label_segment(fast5_fn, raw_label, segment_label, first, last):
 
     fast5_data.flush()
     fast5_data.close()
+
+
+def index2base(read):
+    """Transfer the number into dna base.
+    The transfer will go through each element of the input int vector.
+    Args:
+        read (Int): An Iterable item containing element of [0,1,2,3].
+
+    Returns:
+        bpread (Char): A String containing translated dna base sequence.
+    """
+
+    base = ['A', 'C', 'G', 'T', 'M']
+    bpread = [base[x] for x in read]
+    bpread = ''.join(x for x in bpread)
+    return bpread
+
+
+def add_count(concensus, start_indx, segment):
+    base_dict = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'a': 0, 'c': 1, 'g': 2, 't': 3}
+    if start_indx < 0:
+        segment = segment[-start_indx:]
+        start_indx = 0
+    for i, base in enumerate(segment):
+        concensus[base_dict[base]][start_indx + i] += 1
+
+
+def simple_assembly(self,bpreads):
+    concensus = np.zeros([4, 1000])
+    pos = 0
+    length = 0
+    census_len = 1000
+    for indx, bpread in enumerate(bpreads):
+
+        bpread = bpread.replace(' ', '')
+        # bpread = bpread[0]
+        if indx == 0:
+            self.add_count(concensus, 0, bpread)
+            continue
+        d = difflib.SequenceMatcher(None, bpreads[indx - 1], bpread)
+        match_block = max(d.get_matching_blocks(), key=lambda x: x[2])
+        disp = match_block[0] - match_block[1]
+        if disp + pos + len(bpreads[indx]) > census_len:
+            concensus = np.lib.pad(concensus, ((0, 0), (0, 1000)),
+                                   mode='constant', constant_values=0)
+            census_len += 1000
+        self.add_count(concensus, pos + disp, bpreads[indx])
+        pos += disp
+        length = max(length, pos + len(bpreads[indx]))
+    return concensus[:, :length]
 
 
 if __name__ == '__main__':

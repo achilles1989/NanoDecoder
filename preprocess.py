@@ -11,6 +11,7 @@ import gc
 import os
 import codecs
 import torch
+import multiprocessing
 
 from utils.labelop import extract_fast5
 from utils.logging import init_logger, logger
