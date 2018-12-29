@@ -79,6 +79,8 @@ def make_nano(data, vocab):
     sounds = torch.zeros(len(data), 1, nfft, t)
     for i, spect in enumerate(data):
         sounds[i, :, :, 0:spect.size(1)] = spect
+    sounds = sounds.transpose(0, 1).transpose(0, 3).contiguous() \
+        .view(t, -1, nfft)
     return sounds
 
 

@@ -21,7 +21,7 @@ DNA_IDX = ['A', 'C', 'G', 'T']
 
 
 class NanoDataset(DatasetBase):
-    """ Dataset for data_type=='dna'
+    """ Dataset for data_type=='nano'
 
         Build `Example` objects, `Field` objects, and filter_pred function
         from h5 corpus.

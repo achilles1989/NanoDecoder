@@ -342,10 +342,11 @@ class Translator(object):
     def _run_encoder(self, batch, data_type):
         src = inputters.make_features(batch, 'src', data_type)
         src_lengths = None
-        if data_type == 'text':
-            _, src_lengths = batch.src
-        elif data_type == 'audio':
-            src_lengths = batch.src_lengths
+        # if data_type == 'text':
+        #     _, src_lengths = batch.src
+        # elif data_type == 'audio':
+        #     src_lengths = batch.src_lengths
+        src_lengths = batch.src_lengths
         enc_states, memory_bank, src_lengths = self.model.encoder(
             src, src_lengths)
         if src_lengths is None:

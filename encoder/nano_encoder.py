@@ -25,7 +25,7 @@ class NanoEncoder(nn.Module):
     """
     def __init__(self, rnn_type, enc_layers, dec_layers, brnn,
                  enc_rnn_size, dec_rnn_size, enc_pooling, dropout,
-                 sample_rate, window_size):
+                 sample_rate, window_size, input_size):
         super(NanoEncoder, self).__init__()
         self.enc_layers = enc_layers
         self.rnn_type = rnn_type
@@ -40,7 +40,7 @@ class NanoEncoder(nn.Module):
         self.dec_rnn_size_real = dec_rnn_size_real
         self.dec_rnn_size = dec_rnn_size
         # input_size = int(math.floor((sample_rate * window_size) / 2) + 1)
-        input_size = 1
+        # input_size = 1
         enc_pooling = enc_pooling.split(',')
         assert len(enc_pooling) == enc_layers or len(enc_pooling) == 1
         if len(enc_pooling) == 1:
@@ -79,9 +79,11 @@ class NanoEncoder(nn.Module):
     def forward(self, src, lengths=None):
         "See :obj:`onmt.encoders.encoder.EncoderBase.forward()`"
 
-        batch_size, _, nfft, t = src.size()
-        src = src.transpose(0, 1).transpose(0, 3).contiguous() \
-                 .view(t, batch_size, nfft)
+        # batch_size, _, nfft, t = src.size()
+        # src = src.transpose(0, 1).transpose(0, 3).contiguous() \
+        #          .view(t, batch_size, nfft)
+
+        t,batch_size,nfft = src.size()
         orig_lengths = lengths
         lengths = lengths.view(-1).tolist()
 

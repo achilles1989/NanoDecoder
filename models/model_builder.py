@@ -9,16 +9,17 @@ from torch.nn.init import xavier_uniform_
 
 import inputters.inputter as inputters
 import onmt.modules
-from onmt.encoders.rnn_encoder import RNNEncoder
-from onmt.encoders.transformer import TransformerEncoder
-from onmt.encoders.cnn_encoder import CNNEncoder
-from onmt.encoders.mean_encoder import MeanEncoder
+from encoder.rnn_encoder import RNNEncoder
+from encoder.transformer import TransformerEncoder
+from encoder.cnn_encoder import CNNEncoder
+from encoder.mean_encoder import MeanEncoder
 # from onmt.encoders.audio_encoder import AudioEncoder
 # from onmt.encoders.image_encoder import ImageEncoder
 from encoder.nano_encoder import NanoEncoder
 
 from onmt.decoders.decoder import InputFeedRNNDecoder, StdRNNDecoder
-from onmt.decoders.transformer import TransformerDecoder
+# from onmt.decoders.transformer import TransformerDecoder
+from decoder.transformer import TransformerDecoder
 from onmt.decoders.cnn_decoder import CNNDecoder
 
 from onmt.modules import Embeddings, CopyGenerator
@@ -72,6 +73,7 @@ def build_encoder(opt, embeddings):
             opt.heads,
             opt.transformer_ff,
             opt.dropout,
+            opt.input_size,
             embeddings
         )
     elif opt.encoder_type == "cnn":
@@ -80,9 +82,24 @@ def build_encoder(opt, embeddings):
             opt.enc_rnn_size,
             opt.cnn_kernel_width,
             opt.dropout,
+            opt.input_size,
             embeddings)
     elif opt.encoder_type == "mean":
-        encoder = MeanEncoder(opt.enc_layers, embeddings)
+        encoder = MeanEncoder(opt.enc_layers, opt.input_size, embeddings)
+    elif opt.encoder_type == "nano":
+        encoder = NanoEncoder(
+            opt.rnn_type,
+            opt.enc_layers,
+            opt.dec_layers,
+            opt.brnn,
+            opt.enc_rnn_size,
+            opt.dec_rnn_size,
+            opt.audio_enc_pooling,
+            opt.dropout,
+            opt.sample_rate,
+            opt.window_size,
+            opt.input_size
+        )
     else:
         encoder = RNNEncoder(
             opt.rnn_type,
@@ -90,6 +107,7 @@ def build_encoder(opt, embeddings):
             opt.enc_layers,
             opt.enc_rnn_size,
             opt.dropout,
+            opt.input_size,
             embeddings,
             opt.bridge
         )
@@ -218,18 +236,19 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None):
     #         model_opt.window_size
     #     )
 
-    encoder = NanoEncoder(
-            model_opt.rnn_type,
-            model_opt.enc_layers,
-            model_opt.dec_layers,
-            model_opt.brnn,
-            model_opt.enc_rnn_size,
-            model_opt.dec_rnn_size,
-            model_opt.audio_enc_pooling,
-            model_opt.dropout,
-            model_opt.sample_rate,
-            model_opt.window_size
-        )
+    encoder = build_encoder(model_opt,None)
+    #encoder = NanoEncoder(
+    #        model_opt.rnn_type,
+    #        model_opt.enc_layers,
+    #        model_opt.dec_layers,
+    #        model_opt.brnn,
+    #        model_opt.enc_rnn_size,
+    #        model_opt.dec_rnn_size,
+    #        model_opt.audio_enc_pooling,
+    #        model_opt.dropout,
+    #        model_opt.sample_rate,
+    #       model_opt.window_size
+    #    )
 
     # Build decoder.
     feat_fields = [fields[k]
@@ -298,12 +317,12 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None):
                 if p.dim() > 1:
                     xavier_uniform_(p)
 
-        if hasattr(model.encoder, 'embeddings'):
-            model.encoder.embeddings.load_pretrained_vectors(
-                model_opt.pre_word_vecs_enc, model_opt.fix_word_vecs_enc)
-        if hasattr(model.decoder, 'embeddings'):
-            model.decoder.embeddings.load_pretrained_vectors(
-                model_opt.pre_word_vecs_dec, model_opt.fix_word_vecs_dec)
+        #if hasattr(model.encoder, 'embeddings'):
+                #    model.encoder.embeddings.load_pretrained_vectors(
+        #        model_opt.pre_word_vecs_enc, model_opt.fix_word_vecs_enc)
+        #if hasattr(model.decoder, 'embeddings'):
+                #model.decoder.embeddings.load_pretrained_vectors(
+                #model_opt.pre_word_vecs_dec, model_opt.fix_word_vecs_dec)
 
     model.generator = generator
     model.to(device)
