@@ -48,10 +48,15 @@ class NanoDataset(DatasetBase):
         import librosa
         import numpy as np
 
-        f_h = open(audio_path, 'r')
         signal = list()
-        for line in f_h:
-            signal += [float(x) for x in line.split()]
+
+        if os.path.exists(audio_path):
+            f_h = open(audio_path, 'r')
+            for line in f_h:
+                signal += [float(x) for x in line.split()]
+        else:
+            signal += [float(x) for x in audio_path.split()]
+
         signal = np.asarray(signal)
 
         if truncate and truncate > 0:
@@ -91,7 +96,8 @@ class NanoDataset(DatasetBase):
             window_stride,
             window,
             normalize_audio,
-            truncate=None
+            truncate=None,
+            corpus_type='train'
     ):
         """
         Args:
@@ -115,17 +121,29 @@ class NanoDataset(DatasetBase):
 
         with codecs.open(path, "r", "utf-8") as corpus_file:
             for i, line in enumerate(tqdm(corpus_file)):
+
                 audio_path = os.path.join(src_dir, line.strip())
+
                 if not os.path.exists(audio_path):
                     audio_path = line.strip()
 
-                assert os.path.exists(audio_path), \
-                    'audio path %s not found' % (line.strip())
+                if corpus_type != 'translate':
+
+                    assert os.path.exists(audio_path), \
+                            'audio path %s not found' % (line.strip())
+
+                    file_path = line.strip()
+
+                else:
+
+                    file_path = path
 
                 spect = NanoDataset.extract_features(
                     audio_path, sample_rate, truncate, flag_fft, window_size,
                     window_stride, window, normalize_audio
                 )
 
-                yield {side: spect, side + '_path': line.strip(),
+                # yield {side: spect, side + '_path': line.strip(),
+                #        side + '_lengths': spect.size(1), 'indices': i}
+                yield {side: spect, side + '_path': file_path,
                        side + '_lengths': spect.size(1), 'indices': i}

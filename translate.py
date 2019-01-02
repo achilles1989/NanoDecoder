@@ -11,10 +11,15 @@ import numpy as np
 import models.opts as opts
 import multiprocessing
 import os
+import time
+import codecs
+import math
 
 
 def main(opt):
-    init_fast5(opt)
+
+    flag_intersection = False
+    init_fast5(opt,math.floor(opt.sample_rate * opt.window_stride) if flag_intersection else opt.src_seq_length)
 
     opt.tgt = None
     opt.data_type = 'nano'
@@ -22,10 +27,16 @@ def main(opt):
 
     # pool = multiprocessing.Pool(8)
 
+    translator = build_translator(opt, report_score=True, logger=logger)
+
     for file_src in os.listdir(os.path.join(opt.src_dir, 'src')):
+
+        start = time.time()
+
         opt.src = os.path.join(opt.save_data, 'src', file_src)
-        opt.output = os.path.join(opt.save_data, 'result', file_src)
-        translator = build_translator(opt, report_score=True)
+        # opt.output = os.path.join(opt.save_data, 'result', file_src)
+        translator.setOutFile(codecs.open(os.path.join(opt.save_data, 'result', file_src), 'w+', 'utf-8'))
+
         all_scores, all_predictions = translator.translate(
             src=opt.src,
             tgt=opt.tgt,
@@ -34,10 +45,19 @@ def main(opt):
             attn_debug=opt.attn_debug
         )
 
-        c_bpread = index2base(np.argmax(simple_assembly(all_predictions), axis=0))
-        with open(os.path.join(opt.save_data, 'result', file_src.split('.')+'.fasta')) as file_fasta:
-            file_fasta.writelines('%s\n%s' % (file_src, c_bpread))
+        if flag_intersection:
+            c_bpread = index2base(np.argmax(simple_assembly(all_predictions), axis=0))
+        else:
+            c_bpread = simple_assembly(all_predictions, flag_intersection)
 
+        with open(os.path.join(opt.save_data, 'result', file_src.split('.')[0]+'.fasta'), 'w') as file_fasta:
+            file_fasta.writelines('>%s\n%s' % (file_src.split('.')[0], c_bpread))
+
+        end = time.time()
+
+        with open(os.path.join(opt.save_data, 'speed.txt'), 'a+') as file_summary:
+            file_summary.writelines("%s\t%0.2f\t%d\t%0.2f\n " % (
+                file_src.split('.')[0], float(end - start), len(c_bpread), len(c_bpread) / float(end - start)))
 
 
 

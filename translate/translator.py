@@ -21,7 +21,7 @@ import onmt.decoders.ensemble
 import multiprocessing
 
 
-def init_fast5(opt):
+def init_fast5(opt, window_stride):
     """ extract every h5 file of src_dir into segments and save to train/eval.txt """
 
     # update train and valid options with files just created
@@ -36,9 +36,6 @@ def init_fast5(opt):
     if not os.path.exists(opt.save_data):
         os.mkdir(opt.save_data)
 
-    if not os.path.exists(os.path.join(opt.save_data, 'segments')):
-        os.makedirs(os.path.join(opt.save_data, 'segments'))
-
     if not os.path.exists(os.path.join(opt.save_data, 'src')):
         os.makedirs(os.path.join(opt.save_data, 'src'))
 
@@ -50,7 +47,7 @@ def init_fast5(opt):
     for file_h5 in os.listdir(opt.src_dir):
         if file_h5.endswith('fast5'):
 
-            output_prefix_feature = 'src/'+file_h5.split('.fast5')[0] + '.txt'
+            output_prefix_feature = file_h5.split('.fast5')[0] + '.txt'
 
             pool.apply_async(extract_fast5_raw,
                              (os.path.join(opt.src_dir,file_h5),
@@ -58,7 +55,8 @@ def init_fast5(opt):
                                          output_prefix_feature,
                                          opt.normalization_raw,
                                          opt.src_seq_length,
-                                         math.floor(opt.sample_rate * opt.window_stride),))
+                                         window_stride,))
+
 
             # extract_fast5_raw(os.path.join(opt.src_dir,file_h5),
             #                              opt.save_data,
@@ -72,17 +70,18 @@ def init_fast5(opt):
 
 
 def build_translator(opt, report_score=True, logger=None, out_file=None):
-    if out_file is None:
-        out_file = codecs.open(opt.output, 'w+', 'utf-8')
+    # if out_file is None:
+    #     out_file = codecs.open(opt.output, 'w+', 'utf-8')
 
     dummy_parser = configargparse.ArgumentParser(description='train.py')
     opts.model_opts(dummy_parser)
     dummy_opt = dummy_parser.parse_known_args([])[0]
 
+    logger.info('Loading model...')
     load_test_model = onmt.decoders.ensemble.load_test_model \
         if len(opt.models) > 1 else model_builder.load_test_model
     fields, model, model_opt = load_test_model(opt, dummy_opt.__dict__)
-
+    logger.info(model)
     scorer = onmt.translate.GNMTGlobalScorer(opt)
 
     translator = Translator(
@@ -176,6 +175,9 @@ class Translator(object):
                 "scores": [],
                 "log_probs": []}
 
+    def setOutFile(self,out_file):
+        self.out_file = out_file
+
     def translate(
         self,
         src,
@@ -222,9 +224,10 @@ class Translator(object):
             window_stride=self.window_stride,
             window=self.window,
             use_filter_pred=self.use_filter_pred,
-            flag_fft= self.flag_fft
+            flag_fft= self.flag_fft,
             # image_channel_size=self.image_channel_size,
             # dynamic_dict=self.copy_attn
+            corpus_type='translate'
         )
 
         cur_device = "cuda" if self.cuda else "cpu"

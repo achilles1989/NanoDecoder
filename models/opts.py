@@ -610,7 +610,7 @@ def translate_opts(parser):
                        decoded sentences""")
 
     group = parser.add_argument_group('Efficiency')
-    group.add('--batch_size', '-batch_size', type=int, default=30,
+    group.add('--batch_size', '-batch_size', type=int, default=100,
               help='Batch size')
     group.add('--gpu', '-gpu', type=int, default=-1,
                        help="Device to run on")
@@ -623,7 +623,7 @@ def translate_opts(parser):
               help="Sample rate.")
     group.add('--window_size', '-window_size', type=float, default=.075,
               help='Window size for spectrogram in seconds')
-    group.add('--window_stride', '-window_stride', type=float, default=.0075,
+    group.add('--window_stride', '-window_stride', type=float, default=.015,
               help='Window stride for spectrogram in seconds')
     group.add('--window', '-window', default='hamming',
               help='Window type for spectrogram generation')

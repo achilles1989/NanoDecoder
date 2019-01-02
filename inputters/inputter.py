@@ -72,6 +72,17 @@ def make_tgt(data, vocab):
 #         sounds[i, :, :, 0:spect.size(1)] = spect
 #     return sounds
 
+#def make_nano(data, vocab):
+    #    """ batch audio data """
+    #nfft = data[0].size(0)
+    #t = max([t.size(1) for t in data])
+    #sounds = torch.zeros(len(data), 1, nfft, t)
+    #for i, spect in enumerate(data):
+    #    sounds[i, :, :, 0:spect.size(1)] = spect
+    #sounds = sounds.transpose(0, 1).transpose(0, 3).contiguous() \
+    #    .view(t, -1, nfft)
+#return sounds
+
 def make_nano(data, vocab):
     """ batch audio data """
     nfft = data[0].size(0)
@@ -80,9 +91,8 @@ def make_nano(data, vocab):
     for i, spect in enumerate(data):
         sounds[i, :, :, 0:spect.size(1)] = spect
     sounds = sounds.transpose(0, 1).transpose(0, 3).contiguous() \
-        .view(t, -1, nfft)
+            .view(t, -1, nfft)
     return sounds
-
 
 def get_fields(src_data_type, n_src_features, n_tgt_features):
     """
@@ -240,7 +250,8 @@ def build_dataset(fields, data_type, src,
                   flag_fft=False,
                   sample_rate=0,
                   window_size=0, window_stride=0, window=None,
-                  normalize_audio=False, use_filter_pred=True
+                  normalize_audio=False, use_filter_pred=True,
+                  corpus_type = 'train'
                   # image_channel_size=3
                   ):
     """
@@ -275,7 +286,7 @@ def build_dataset(fields, data_type, src,
     src_examples_iter = NanoDataset.make_examples(
         src, src_dir, "src", flag_fft, sample_rate,
         window_size, window_stride, window,
-        normalize_audio, None)
+        normalize_audio, None, corpus_type)
 
     if tgt is None:
         tgt_examples_iter = None

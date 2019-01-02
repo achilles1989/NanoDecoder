@@ -12,6 +12,7 @@ import numpy as np
 import math
 from six.moves import zip
 from statsmodels import robust
+import difflib
 
 DNA_BASE = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 DNA_IDX = ['A', 'C', 'G', 'T']
@@ -75,6 +76,10 @@ def extract_fast5(input_file_path, output_path, output_prefix_feature, output_pr
 
 
 def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization, max_length, signal_stride):
+
+    if os.path.exists(os.path.join(output_path, 'src', output_prefix)):
+        return True
+
     ##Open file
     try:
         ind_segment = 0
@@ -93,19 +98,22 @@ def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization
         elif normalization == 'median':
             raw_data = (raw_data - np.median(raw_data)) / np.float(robust.mad(raw_data))
 
-        for ind_segment in range(0,math.ceil(raw_data.size/signal_stride)):
+        for ind_segment in range(0, math.ceil(raw_data.size / signal_stride)):
 
-            filename_segment = os.path.split(input_file_path)[1].split('.')[0] + '.' + str(ind_segment) + '.txt'
+            # filename_segment = os.path.split(input_file_path)[1].split('.')[0] + '.' + str(ind_segment) + '.txt'
 
-            segment_start = ind_segment*signal_stride
-            segment_end = ind_segment*signal_stride + max_length
+            segment_start = ind_segment * signal_stride
+            segment_end = ind_segment * signal_stride + max_length
             segment_end = segment_end if segment_end < len(raw_data) else len(raw_data)
 
-            with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
+            # with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
+            #         os.path.join(output_path, 'src', output_prefix), 'a+') as file_output_feature_summary:
+            with open(
                     os.path.join(output_path, 'src', output_prefix), 'a+') as file_output_feature_summary:
-
-                file_output_feature.writelines(' '.join([str(x) for x in raw_data[segment_start:segment_end]]))
-                file_output_feature_summary.writelines('segments/' + filename_segment + '\n')
+                # file_output_feature.writelines(' '.join([str(x) for x in raw_data[segment_start:segment_end]]))
+                # file_output_feature_summary.writelines('segments/' + filename_segment + '\n')
+                file_output_feature_summary.writelines(
+                    ' '.join([str(x) for x in raw_data[segment_start:segment_end]])+ '\n')
 
             if segment_end >= len(raw_data):
                 break
@@ -340,29 +348,38 @@ def add_count(concensus, start_indx, segment):
         concensus[base_dict[base]][start_indx + i] += 1
 
 
-def simple_assembly(self,bpreads):
-    concensus = np.zeros([4, 1000])
-    pos = 0
-    length = 0
-    census_len = 1000
-    for indx, bpread in enumerate(bpreads):
+def simple_assembly(bpreads, flag_intersection = True):
 
-        bpread = bpread.replace(' ', '')
-        # bpread = bpread[0]
-        if indx == 0:
-            self.add_count(concensus, 0, bpread)
-            continue
-        d = difflib.SequenceMatcher(None, bpreads[indx - 1], bpread)
-        match_block = max(d.get_matching_blocks(), key=lambda x: x[2])
-        disp = match_block[0] - match_block[1]
-        if disp + pos + len(bpreads[indx]) > census_len:
-            concensus = np.lib.pad(concensus, ((0, 0), (0, 1000)),
-                                   mode='constant', constant_values=0)
-            census_len += 1000
-        self.add_count(concensus, pos + disp, bpreads[indx])
-        pos += disp
-        length = max(length, pos + len(bpreads[indx]))
-    return concensus[:, :length]
+    if flag_intersection:
+        concensus = np.zeros([4, 1000])
+        pos = 0
+        length = 0
+        census_len = 1000
+        bpreads_valid = [x[0].replace(' ', '') for x in bpreads if x[0] != '']
+        bpreads = bpreads_valid
+
+        for indx, bpread in enumerate(bpreads):
+
+            # bpread = bpread[0]
+            if indx == 0:
+                add_count(concensus, 0, bpread)
+                continue
+            d = difflib.SequenceMatcher(None, bpreads[indx - 1], bpread)
+            match_block = max(d.get_matching_blocks(), key=lambda x: x[2])
+            disp = match_block[0] - match_block[1]
+            if disp + pos + len(bpreads[indx]) > census_len:
+                concensus = np.lib.pad(concensus, ((0, 0), (0, 1000)),
+                                       mode='constant', constant_values=0)
+                census_len += 1000
+            add_count(concensus, pos + disp, bpreads[indx])
+            pos += disp
+            length = max(length, pos + len(bpreads[indx]))
+        return concensus[:, :length]
+
+    else:
+
+        bpreads_valid = [x[0].replace(' ', '') for x in bpreads if x[0] != '']
+        return ''.join(bpreads_valid)
 
 
 if __name__ == '__main__':

@@ -66,6 +66,8 @@ def build_encoder(opt, embeddings):
         opt: the option in current environment.
         embeddings (Embeddings): vocab embeddings for this encoder.
     """
+    opt.input_size = 1
+
     if opt.encoder_type == "transformer":
         encoder = TransformerEncoder(
             opt.enc_layers,

@@ -79,11 +79,13 @@ class NanoEncoder(nn.Module):
     def forward(self, src, lengths=None):
         "See :obj:`onmt.encoders.encoder.EncoderBase.forward()`"
 
-        # batch_size, _, nfft, t = src.size()
-        # src = src.transpose(0, 1).transpose(0, 3).contiguous() \
-        #          .view(t, batch_size, nfft)
+        if len(src.size()) > 3:
+            batch_size, _, nfft, t = src.size()
+            src = src.transpose(0, 1).transpose(0, 3).contiguous() \
+                      .view(t, batch_size, nfft)
+        else:
+            t,batch_size,nfft = src.size()
 
-        t,batch_size,nfft = src.size()
         orig_lengths = lengths
         lengths = lengths.view(-1).tolist()
 
