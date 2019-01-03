@@ -20,7 +20,7 @@ import inputters.inputter as inputters
 from models import opts as opts
 
 
-def init_fast5(opt, number_file_eval):
+def init_fast5(opt):
     """ extract every h5 file of src_dir into segments and save to train/eval.txt """
 
     # update train and valid options with files just created
@@ -37,32 +37,50 @@ def init_fast5(opt, number_file_eval):
         opt.src_dir = opt.save_data
         return
 
-    ind_file_train = 0
-    ind_file_eval = 0
+    opt.ind_file_train = 0
+    opt.ind_file_eval = 0
 
     if not os.path.exists(opt.save_data):
         os.mkdir(opt.save_data)
 
+    def writeToFile(str_list):
+
+        [str_summary, str_label] = str_list
+        if str_summary != '' and str_label != '':
+            if opt.ind_file_eval < opt.number_file_eval:
+                opt.ind_file_eval += 1
+            else:
+                opt.ind_file_train += 1
+            output_prefix_feature = 'src-eval.txt' if opt.ind_file_eval < opt.number_file_eval else 'src-train.txt'
+            output_prefix_label = 'tgt-eval.txt' if opt.ind_file_eval < opt.number_file_eval else 'tgt-train.txt'
+            with open(os.path.join(opt.save_data, output_prefix_feature), 'a+') as file_output_feature_summary, open(
+                    os.path.join(opt.save_data, output_prefix_label), 'a+') as file_output_label:
+                file_output_feature_summary.writelines(str_summary)
+                file_output_label.writelines(str_label)
+        return True
+
+    pool = multiprocessing.Pool(8)
+
     for file_h5 in os.listdir(opt.src_dir):
         if file_h5.endswith('fast5'):
+            pool.apply_async(extract_fast5,
+                             (os.path.join(opt.src_dir, file_h5),
+                             opt.save_data,
+                             opt.basecall_group,
+                             opt.basecall_subgroup,
+                             opt.normalization_raw,
+                             opt.src_seq_length,),
+                             callback=writeToFile)
 
-            output_prefix_feature = 'src-eval.txt' if ind_file_eval < number_file_eval else 'src-train.txt'
-            output_prefix_label = 'tgt-eval.txt' if ind_file_eval < number_file_eval else 'tgt-train.txt'
+            # output_state = extract_fast5(os.path.join(opt.src_dir,file_h5),
+            #                              opt.save_data,
+            #                              opt.basecall_group,
+            #                              opt.basecall_subgroup,
+            #                              opt.normalization_raw,
+            #                              opt.src_seq_length)
 
-            output_state = extract_fast5(os.path.join(opt.src_dir,file_h5),
-                                         opt.save_data,
-                                         output_prefix_feature,
-                                         output_prefix_label,
-                                         opt.basecall_group,
-                                         opt.basecall_subgroup,
-                                         opt.normalization_raw,
-                                         opt.src_seq_length)
-            if output_state:
-                if ind_file_eval < number_file_eval:
-                    ind_file_eval += 1
-                else:
-                    ind_file_train += 1
-
+    pool.close()
+    pool.join()
     opt.src_dir = opt.save_data
 
 
@@ -208,7 +226,7 @@ def main():
         "-shuffle is not implemented. Please shuffle \
         your data before pre-processing."
 
-    init_fast5(opt, 10)
+    init_fast5(opt)
     # assert os.path.isfile(opt.train_src) and os.path.isfile(opt.train_tgt), \
     #     "Please check path of your train src and tgt files!"
 

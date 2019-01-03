@@ -18,7 +18,7 @@ DNA_BASE = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 DNA_IDX = ['A', 'C', 'G', 'T']
 
 
-def extract_fast5(input_file_path, output_path, output_prefix_feature, output_prefix_label, basecall_group, basecall_subgroup, normalization, max_length):
+def extract_fast5(input_file_path, output_path, basecall_group, basecall_subgroup, normalization, max_length):
     """
     Extract the signal and label from a single fast5 file into Multiple Segments
     Args:
@@ -26,11 +26,14 @@ def extract_fast5(input_file_path, output_path, output_prefix_feature, output_pr
 
     """
 
+    str_summary = ''
+    str_label = ''
+
     try:
         ind_segment = 0
         (raw_data, raw_label, raw_start, raw_length) = get_label_raw(input_file_path, basecall_group, basecall_subgroup)
     except:
-        return False
+        return [str_summary, str_label]
     if normalization == 'mean':
         raw_data = (raw_data - np.median(raw_data)) / np.float(np.std(raw_data))
     elif normalization == 'median':
@@ -55,13 +58,17 @@ def extract_fast5(input_file_path, output_path, output_prefix_feature, output_pr
             filename_segment = os.path.split(input_file_path)[1].split('.')[0]+'.'+str(ind_segment)+'.txt'
             if not os.path.exists(os.path.join(output_path, 'segments')):
                 os.makedirs(os.path.join(output_path, 'segments'))
-            with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
-                    os.path.join(output_path, output_prefix_feature), 'a+') as file_output_feature_summary, open(
-                    os.path.join(output_path, output_prefix_label), 'a+') as file_output_label:
+            # with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
+            #         os.path.join(output_path, output_prefix_feature), 'a+') as file_output_feature_summary, open(
+            #         os.path.join(output_path, output_prefix_label), 'a+') as file_output_label:
+            with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature:
 
                 file_output_feature.writelines(' '.join([str(x) for x in raw_data[pre_start:raw_start[index - 1]]]))
-                file_output_feature_summary.writelines('segments/'+filename_segment+'\n')
-                file_output_label.writelines(' '.join([x.decode('UTF-8') for x in label_ind]) + '\n')
+                str_summary += ('segments/'+filename_segment+'\n')
+                str_label += (' '.join([x.decode('UTF-8') for x in label_ind]) + '\n')
+                # file_output_feature_summary.writelines('segments/'+filename_segment+'\n')
+                # file_output_label.writelines(' '.join([x.decode('UTF-8') for x in label_ind]) + '\n')
+
 
             ind_segment += 1
             pre_index = index - 1
@@ -72,7 +79,7 @@ def extract_fast5(input_file_path, output_path, output_prefix_feature, output_pr
             pre_index = index
             pre_start = raw_start[index]
 
-    return True
+    return [str_summary, str_label]
 
 
 def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization, max_length, signal_stride):
