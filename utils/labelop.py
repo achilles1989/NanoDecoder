@@ -85,7 +85,7 @@ def extract_fast5(input_file_path, output_path, basecall_group, basecall_subgrou
 def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization, max_length, signal_stride):
 
     if os.path.exists(os.path.join(output_path, 'src', output_prefix)):
-        return os.path.join(output_path, 'src', output_prefix)
+        return output_prefix
 
     ##Open file
     try:
@@ -132,7 +132,7 @@ def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization
             'new segments cannot be identified.')
         return None
 
-    return os.path.join(output_path, 'src', output_prefix)
+    return output_prefix
 
 
 def get_label_segment(fast5_fn, basecall_group, basecall_subgroup):
