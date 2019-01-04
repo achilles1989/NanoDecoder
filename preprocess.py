@@ -39,6 +39,7 @@ def init_fast5(opt):
 
     opt.ind_file_train = 0
     opt.ind_file_eval = 0
+    opt.number_file_eval = 10
 
     if not os.path.exists(opt.save_data):
         os.mkdir(opt.save_data)
