@@ -60,7 +60,7 @@ def init_fast5(opt):
                 file_output_label.writelines(str_label)
         return True
 
-    pool = multiprocessing.Pool(8)
+    pool = multiprocessing.Pool(opt.thread)
 
     for file_h5 in os.listdir(opt.src_dir):
         if file_h5.endswith('fast5'):

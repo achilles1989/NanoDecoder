@@ -193,6 +193,9 @@ def preprocess_opts(parser):
     group.add('--prefix', '-prefix', default='demo',
               help="prefix filename for pytorch dataset")
 
+    group.add('--thread', '-thread', type=int, default=4,
+              help='thread number')
+
     group.add('--save_data', '-save_data', required=True,
               help="Output file for the prepared data")
 
@@ -518,6 +521,9 @@ def translate_opts(parser):
 
     # H5 file config
 
+    group.add('--thread', '-thread', type=int, default=4,
+              help='thread number')
+
     group.add_argument('--normalization_raw', default='median',
                        help="The method of normalization applied to signal, Median(default):robust median normalization, 'mean': mean normalization, 'None': no normalizaion")
     # group.add('--src', '-src', required=True,
@@ -527,6 +533,8 @@ def translate_opts(parser):
               help='Source directory for image or audio files')
     group.add('--src_seq_length', '-src_seq_length', type=int, default=512,
               help="Maximum source sequence length")
+    group.add('--src_seq_stride', '-src_seq_stride', type=int, default=512,
+              help="Window stride for source sequence segment")
     # group.add('--tgt', '-tgt',
     #                    help='True target sequence (optional)')
     # group.add('--output', '-output', default='pred.txt',

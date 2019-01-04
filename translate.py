@@ -5,31 +5,38 @@ from __future__ import unicode_literals
 import configargparse
 
 from onmt.utils.logging import init_logger
-from translate.translator import build_translator, init_fast5
-from utils.labelop import index2base, simple_assembly
+from translate.translator import build_translator
+from utils.labelop import index2base, simple_assembly, extract_fast5_raw
 import numpy as np
 import models.opts as opts
 import multiprocessing
 import os
 import time
 import codecs
-import math
-
 
 def main(opt):
 
-    flag_intersection = False
-    #init_fast5(opt,math.floor(opt.sample_rate * opt.window_stride) if flag_intersection else opt.src_seq_length)
+    if not os.path.exists(opt.save_data):
+        os.mkdir(opt.save_data)
+
+    if not os.path.exists(os.path.join(opt.save_data, 'src')):
+        os.makedirs(os.path.join(opt.save_data, 'src'))
+
+    if not os.path.exists(os.path.join(opt.save_data, 'result')):
+        os.makedirs(os.path.join(opt.save_data, 'result'))
+
+    if not os.path.exists(os.path.join(opt.save_data, 'segment')):
+        os.makedirs(os.path.join(opt.save_data, 'segment'))
+
+    if not os.path.exists(os.path.join(opt.save_data, 'attention')):
+        os.makedirs(os.path.join(opt.save_data, 'attention'))
 
     opt.tgt = None
     opt.data_type = 'nano'
-    opt.src_dir = opt.save_data
-
-    # pool = multiprocessing.Pool(8)
 
     translator = build_translator(opt, report_score=True, logger=logger)
 
-    for file_src in os.listdir(os.path.join(opt.src_dir, 'src')):
+    def translate(file_src):
 
         start = time.time()
 
@@ -43,17 +50,17 @@ def main(opt):
         all_scores, all_predictions = translator.translate(
             src=opt.src,
             tgt=opt.tgt,
-            src_dir=opt.src_dir,
+            src_dir=opt.save_data,
             batch_size=opt.batch_size,
             attn_debug=opt.attn_debug
         )
 
-        if flag_intersection:
+        if opt.src_seq_stride < opt.src_seq_length:
             c_bpread = index2base(np.argmax(simple_assembly(all_predictions), axis=0))
         else:
-            c_bpread = simple_assembly(all_predictions, flag_intersection)
+            c_bpread = simple_assembly(all_predictions, flag_intersection=False)
 
-        with open(os.path.join(opt.save_data, 'result', file_src.split('.')[0]+'.fasta'), 'w') as file_fasta:
+        with open(os.path.join(opt.save_data, 'result', file_src.split('.')[0] + '.fasta'), 'w') as file_fasta:
             file_fasta.writelines('>%s\n%s' % (file_src.split('.')[0], c_bpread))
 
         end = time.time()
@@ -62,6 +69,23 @@ def main(opt):
             file_summary.writelines("%s\t%0.2f\t%d\t%0.2f\n " % (
                 file_src.split('.')[0], float(end - start), len(c_bpread), len(c_bpread) / float(end - start)))
 
+    pool = multiprocessing.Pool(opt.thread)
+
+    for file_h5 in os.listdir(opt.src_dir):
+        if file_h5.endswith('fast5'):
+            output_prefix_feature = file_h5.split('.fast5')[0] + '.txt'
+
+            pool.apply_async(extract_fast5_raw,
+                             (os.path.join(opt.src_dir, file_h5),
+                              opt.save_data,
+                              output_prefix_feature,
+                              opt.normalization_raw,
+                              opt.src_seq_length,
+                              opt.src_seq_stride,),
+                             callback=translate)
+
+    pool.close()
+    pool.join()
 
 
 if __name__ == "__main__":

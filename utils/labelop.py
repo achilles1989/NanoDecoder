@@ -85,7 +85,7 @@ def extract_fast5(input_file_path, output_path, basecall_group, basecall_subgrou
 def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization, max_length, signal_stride):
 
     if os.path.exists(os.path.join(output_path, 'src', output_prefix)):
-        return True
+        return os.path.join(output_path, 'src', output_prefix)
 
     ##Open file
     try:
@@ -130,9 +130,9 @@ def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization
         raise RuntimeError(
             'Raw data is not stored in Raw/Reads/Read_[read#] so ' +
             'new segments cannot be identified.')
-        return False
+        return None
 
-    return True
+    return os.path.join(output_path, 'src', output_prefix)
 
 
 def get_label_segment(fast5_fn, basecall_group, basecall_subgroup):
@@ -355,7 +355,7 @@ def add_count(concensus, start_indx, segment):
         concensus[base_dict[base]][start_indx + i] += 1
 
 
-def simple_assembly(bpreads, flag_intersection = True):
+def simple_assembly(bpreads, flag_intersection=True):
 
     if flag_intersection:
         concensus = np.zeros([4, 1000])

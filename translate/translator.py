@@ -23,58 +23,43 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-def init_fast5(opt, window_stride):
-    """ extract every h5 file of src_dir into segments and save to train/eval.txt """
-
-    # update train and valid options with files just created
-    # opt.src = os.path.join(opt.save_data, 'src.txt')
-
-    # opt.output = os.path.join(opt.save_data, 'pred.txt')
-
-    # if os.path.exists(opt.src):
-    #     opt.src_dir = opt.save_data
-    #     return
-
-    if not os.path.exists(opt.save_data):
-        os.mkdir(opt.save_data)
-
-    if not os.path.exists(os.path.join(opt.save_data, 'src')):
-        os.makedirs(os.path.join(opt.save_data, 'src'))
-
-    if not os.path.exists(os.path.join(opt.save_data, 'result')):
-        os.makedirs(os.path.join(opt.save_data, 'result'))
-
-    if not os.path.exists(os.path.join(opt.save_data, 'segment')):
-        os.makedirs(os.path.join(opt.save_data, 'segment'))
-
-    if not os.path.exists(os.path.join(opt.save_data, 'attention')):
-        os.makedirs(os.path.join(opt.save_data, 'attention'))
-
-    pool = multiprocessing.Pool(8)
-
-    for file_h5 in os.listdir(opt.src_dir):
-        if file_h5.endswith('fast5'):
-
-            output_prefix_feature = file_h5.split('.fast5')[0] + '.txt'
-
-            pool.apply_async(extract_fast5_raw,
-                             (os.path.join(opt.src_dir,file_h5),
-                                         opt.save_data,
-                                         output_prefix_feature,
-                                         opt.normalization_raw,
-                                         opt.src_seq_length,
-                                         window_stride,))
-
-
-            # extract_fast5_raw(os.path.join(opt.src_dir,file_h5),
-            #                              opt.save_data,
-            #                              output_prefix_feature,
-            #                              opt.normalization_raw,
-            #                              opt.src_seq_length,
-            #                              math.floor(opt.sample_rate * opt.window_stride))
-
-    pool.close()
-    pool.join()
+# def init_fast5(opt, window_stride):
+#     """ extract every h5 file of src_dir into segments and save to train/eval.txt """
+#
+#     # update train and valid options with files just created
+#     # opt.src = os.path.join(opt.save_data, 'src.txt')
+#
+#     # opt.output = os.path.join(opt.save_data, 'pred.txt')
+#
+#     # if os.path.exists(opt.src):
+#     #     opt.src_dir = opt.save_data
+#     #     return
+#
+#     pool = multiprocessing.Pool(8)
+#
+#     for file_h5 in os.listdir(opt.src_dir):
+#         if file_h5.endswith('fast5'):
+#
+#             output_prefix_feature = file_h5.split('.fast5')[0] + '.txt'
+#
+#             pool.apply_async(extract_fast5_raw,
+#                              (os.path.join(opt.src_dir,file_h5),
+#                                          opt.save_data,
+#                                          output_prefix_feature,
+#                                          opt.normalization_raw,
+#                                          opt.src_seq_length,
+#                                          window_stride,))
+#
+#
+#             # extract_fast5_raw(os.path.join(opt.src_dir,file_h5),
+#             #                              opt.save_data,
+#             #                              output_prefix_feature,
+#             #                              opt.normalization_raw,
+#             #                              opt.src_seq_length,
+#             #                              math.floor(opt.sample_rate * opt.window_stride))
+#
+#     pool.close()
+#     pool.join()
 
 
 def build_translator(opt, report_score=True, logger=None, out_file=None):
