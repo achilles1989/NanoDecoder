@@ -19,7 +19,7 @@ import math
 def main(opt):
 
     flag_intersection = False
-    init_fast5(opt,math.floor(opt.sample_rate * opt.window_stride) if flag_intersection else opt.src_seq_length)
+    #init_fast5(opt,math.floor(opt.sample_rate * opt.window_stride) if flag_intersection else opt.src_seq_length)
 
     opt.tgt = None
     opt.data_type = 'nano'
@@ -35,7 +35,10 @@ def main(opt):
 
         opt.src = os.path.join(opt.save_data, 'src', file_src)
         # opt.output = os.path.join(opt.save_data, 'result', file_src)
-        translator.setOutFile(codecs.open(os.path.join(opt.save_data, 'result', file_src), 'w+', 'utf-8'))
+        translator.setOutFile(codecs.open(os.path.join(opt.save_data, 'segment', file_src), 'w+', 'utf-8'))
+
+        if opt.attn_debug:
+            translator.setAttnFile(codecs.open(os.path.join(opt.save_data, 'attention', file_src), 'a+', 'utf-8'))
 
         all_scores, all_predictions = translator.translate(
             src=opt.src,

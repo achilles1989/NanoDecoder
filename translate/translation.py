@@ -81,7 +81,7 @@ class TranslationBuilder(object):
             #     src_raw = None
             src_vocab = None
             src_raw = None
-            # src_raw = self.data.examples[inds[b]].src
+            src_raw = self.data.examples[inds[b]].src
 
             pred_sents = [self._build_target_tokens(
                 src[:, b] if src is not None else None,

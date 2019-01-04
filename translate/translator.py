@@ -19,7 +19,9 @@ from utils.labelop import extract_fast5_raw
 from translate.translation import TranslationBuilder
 import onmt.decoders.ensemble
 import multiprocessing
-
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
 
 def init_fast5(opt, window_stride):
     """ extract every h5 file of src_dir into segments and save to train/eval.txt """
@@ -41,6 +43,12 @@ def init_fast5(opt, window_stride):
 
     if not os.path.exists(os.path.join(opt.save_data, 'result')):
         os.makedirs(os.path.join(opt.save_data, 'result'))
+
+    if not os.path.exists(os.path.join(opt.save_data, 'segment')):
+        os.makedirs(os.path.join(opt.save_data, 'segment'))
+
+    if not os.path.exists(os.path.join(opt.save_data, 'attention')):
+        os.makedirs(os.path.join(opt.save_data, 'attention'))
 
     pool = multiprocessing.Pool(8)
 
@@ -178,6 +186,9 @@ class Translator(object):
     def setOutFile(self,out_file):
         self.out_file = out_file
 
+    def setAttnFile(self,out_file_attn):
+        self.out_file_attn = out_file_attn
+
     def translate(
         self,
         src,
@@ -289,19 +300,51 @@ class Translator(object):
                     # if self.data_type == 'text':
                     #     srcs = trans.src_raw
                     # else:
-                    srcs = [str(item) for item in range(len(attns[0]))]
-                    header_format = "{:>10.10} " + "{:>10.7} " * len(srcs)
-                    row_format = "{:>10.10} " + "{:>10.7f} " * len(srcs)
-                    output = header_format.format("", *srcs) + '\n'
-                    for word, row in zip(preds, attns):
-                        max_index = row.index(max(row))
-                        row_format = row_format.replace(
-                            "{:>10.7f} ", "{:*>10.7f} ", max_index + 1)
-                        row_format = row_format.replace(
-                            "{:*>10.7f} ", "{:>10.7f} ", max_index)
-                        output += row_format.format(word, *row) + '\n'
-                        row_format = "{:>10.10} " + "{:>10.7f} " * len(srcs)
-                    os.write(1, output.encode('utf-8'))
+                    #tmp = np.array(attns)
+                    #fig,ax = plt.subplots()
+                    #im = ax.imshow(tmp)
+                    #plt.show()
+                    #srcs = [str(item) for item in range(len(attns[0]))]
+
+                    srcs = [str(x) for x in trans.src_raw.view(-1).numpy()]
+                    #header_format = "{:>10.5} " + "{:>10.5} " * len(srcs)
+                    #row_format = "{:>10.5} " + "{:>10.5f} " * len(srcs)
+                    #output = header_format.format("", *srcs) + '\n'
+                    #for word, row in zip(preds, attns):
+                    #    max_index = row.index(max(row))
+                    #    row_format = row_format.replace(
+                    #        "{:>10.5f} ", "{:*>10.5f} ", max_index + 1)
+                    #    row_format = row_format.replace(
+                    #        "{:*>10.5f} ", "{:>10.5f} ", max_index)
+                    #    output += row_format.format(word, *row) + '\n'
+                    #    row_format = "{:>10.5} " + "{:>10.5f} " * len(srcs)
+
+                    header_format = "{:>8.7} " + "{:>8.7} " * len(srcs)
+                    row_format = "{:>8.5f} " * len(srcs)
+                    output = header_format.format(">", *srcs)
+                    header_format = "{:>8.7} " + "{:>8.7} " * len(preds)
+                    output += header_format.format("|", *preds) + '\n'
+
+                    #if len(preds) != len(attns):
+                    #     print(len(preds))
+                    #    print(len(attns))
+
+                    for row in attns:
+                        # max_index = row.index(max(row))
+                        # row_format = row_format.replace(
+                        #    "{:>8.5f} ", "{:*>8.5f} ", max_index + 1)
+                        # row_format = row_format.replace(
+                        #     "{:*>8.5f} ", "{:>8.5f} ", max_index)
+                        output += row_format.format(*row) + '\n'
+
+                    #tmp = ''
+                    #for line in attns:
+                    #    tmp += '\t'.join('%10.5f'%x for x in line) +'\n'
+                    #self.out_file_attn.write('>'+'\t'.join(srcs)+'\n')
+                    #self.out_file_attn.write('>' + '\t'.join(preds) + '\n')
+                    #self.out_file_attn.write(tmp)
+                    #os.write(1, output.encode('utf-8'))
+                    self.out_file_attn.write(output)
 
         if self.report_score:
             msg = self._report_score('PRED', pred_score_total,
