@@ -283,6 +283,7 @@ def build_dataset(fields, data_type, src,
     #         src, src_dir, "src", sample_rate,
     #         window_size, window_stride, window,
     #         normalize_audio, None)
+
     src_examples_iter = NanoDataset.make_examples(
         src, src_dir, "src", flag_fft, sample_rate,
         window_size, window_stride, window,

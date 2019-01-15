@@ -28,6 +28,7 @@ def init_fast5(opt):
     opt.train_tgt = os.path.join(opt.save_data, 'tgt-train.txt')
     opt.valid_src = os.path.join(opt.save_data, 'src-eval.txt')
     opt.valid_tgt = os.path.join(opt.save_data, 'tgt-eval.txt')
+
     opt.data_type = 'nano'
 
     if os.path.exists(opt.train_src) and \
@@ -39,7 +40,7 @@ def init_fast5(opt):
 
     opt.ind_file_train = 0
     opt.ind_file_eval = 0
-    opt.number_file_eval = 10
+    opt.number_file_eval = 0
 
     if not os.path.exists(opt.save_data):
         os.mkdir(opt.save_data)

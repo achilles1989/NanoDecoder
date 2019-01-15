@@ -81,11 +81,62 @@ def extract_fast5(input_file_path, output_path, basecall_group, basecall_subgrou
 
     return [str_summary, str_label]
 
+#
+# def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization, max_length, signal_stride):
+#
+#     if os.path.exists(os.path.join(output_path, 'src', output_prefix)):
+#         return output_prefix
+#
+#     ##Open file
+#     try:
+#         ind_segment = 0
+#         fast5_data = h5py.File(input_file_path, 'r')
+#     except IOError:
+#         raise IOError('Error opening file. Likely a corrupted file.')
+#
+#     # Get raw data
+#     try:
+#         raw_data = list(fast5_data['/Raw/Reads/'].values())[0]
+#         # raw_attrs = raw_dat.attrs
+#         raw_data = raw_data['Signal'].value
+#
+#         if normalization == 'mean':
+#             raw_data = (raw_data - np.median(raw_data)) / np.float(np.std(raw_data))
+#         elif normalization == 'median':
+#             raw_data = (raw_data - np.median(raw_data)) / np.float(robust.mad(raw_data))
+#
+#         for ind_segment in range(0, math.ceil(raw_data.size / signal_stride)):
+#
+#             # filename_segment = os.path.split(input_file_path)[1].split('.')[0] + '.' + str(ind_segment) + '.txt'
+#
+#             segment_start = ind_segment * signal_stride
+#             segment_end = ind_segment * signal_stride + max_length
+#             segment_end = segment_end if segment_end < len(raw_data) else len(raw_data)
+#
+#             # with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
+#             #         os.path.join(output_path, 'src', output_prefix), 'a+') as file_output_feature_summary:
+#             with open(
+#                     os.path.join(output_path, 'src', output_prefix), 'a+') as file_output_feature_summary:
+#                 # file_output_feature.writelines(' '.join([str(x) for x in raw_data[segment_start:segment_end]]))
+#                 # file_output_feature_summary.writelines('segments/' + filename_segment + '\n')
+#                 file_output_feature_summary.writelines(
+#                     ' '.join([str(x) for x in raw_data[segment_start:segment_end]])+ '\n')
+#
+#             if segment_end >= len(raw_data):
+#                 break
+#
+#         fast5_data.close()
+#     except:
+#         raise RuntimeError(
+#             'Raw data is not stored in Raw/Reads/Read_[read#] so ' +
+#             'new segments cannot be identified.')
+#         return None
+#
+#     return output_prefix
 
-def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization, max_length, signal_stride):
+def extract_fast5_raw(input_file_path, output_prefix, normalization, max_length, signal_stride):
 
-    if os.path.exists(os.path.join(output_path, 'src', output_prefix)):
-        return output_prefix
+    result_array = [output_prefix]
 
     ##Open file
     try:
@@ -113,15 +164,13 @@ def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization
             segment_end = ind_segment * signal_stride + max_length
             segment_end = segment_end if segment_end < len(raw_data) else len(raw_data)
 
-            # with open(os.path.join(output_path, 'segments', filename_segment), 'w') as file_output_feature, open(
+            # with open(
             #         os.path.join(output_path, 'src', output_prefix), 'a+') as file_output_feature_summary:
-            with open(
-                    os.path.join(output_path, 'src', output_prefix), 'a+') as file_output_feature_summary:
-                # file_output_feature.writelines(' '.join([str(x) for x in raw_data[segment_start:segment_end]]))
-                # file_output_feature_summary.writelines('segments/' + filename_segment + '\n')
-                file_output_feature_summary.writelines(
-                    ' '.join([str(x) for x in raw_data[segment_start:segment_end]])+ '\n')
-
+            #     # file_output_feature.writelines(' '.join([str(x) for x in raw_data[segment_start:segment_end]]))
+            #     # file_output_feature_summary.writelines('segments/' + filename_segment + '\n')
+            #     file_output_feature_summary.writelines(
+            #         ' '.join([str(x) for x in raw_data[segment_start:segment_end]])+ '\n')
+            result_array.append(' '.join([str(x) for x in raw_data[segment_start:segment_end]]))
             if segment_end >= len(raw_data):
                 break
 
@@ -130,9 +179,9 @@ def extract_fast5_raw(input_file_path, output_path, output_prefix, normalization
         raise RuntimeError(
             'Raw data is not stored in Raw/Reads/Read_[read#] so ' +
             'new segments cannot be identified.')
-        return None
+        return result_array
 
-    return output_prefix
+    return result_array
 
 
 def get_label_segment(fast5_fn, basecall_group, basecall_subgroup):

@@ -115,35 +115,43 @@ class NanoDataset(DatasetBase):
         Yields:
             a dictionary containing audio data for each line.
         """
-        assert isinstance(path, str), "Iterators not supported for audio"
-        assert src_dir is not None and os.path.exists(src_dir), \
-            "src_dir must be a valid directory if data_type is audio"
+        # assert isinstance(path, str), "Iterators not supported for audio"
+        # assert src_dir is not None and os.path.exists(src_dir), \
+        #     "src_dir must be a valid directory if data_type is audio"
 
-        with codecs.open(path, "r", "utf-8") as corpus_file:
-            for i, line in enumerate(tqdm(corpus_file)):
+        if corpus_type == 'translate':
 
-                audio_path = os.path.join(src_dir, line.strip())
+            for i in range(len(path)):
+                data_segment = path[i]
+                spect = NanoDataset.extract_features(
+                    data_segment, sample_rate, truncate, flag_fft, window_size,
+                    window_stride, window, normalize_audio
+                )
 
-                if not os.path.exists(audio_path):
-                    audio_path = line.strip()
+                # yield {side: spect, side + '_path': line.strip(),
+                #        side + '_lengths': spect.size(1), 'indices': i}
+                yield {side: spect, side + '_path': src_dir,
+                       side + '_lengths': spect.size(1), 'indices': i}
+        else:
+            with codecs.open(path, "r", "utf-8") as corpus_file:
+                for i, line in enumerate(tqdm(corpus_file)):
 
-                if corpus_type != 'translate':
+                    audio_path = os.path.join(src_dir, line.strip())
+
+                    if not os.path.exists(audio_path):
+                        audio_path = line.strip()
 
                     assert os.path.exists(audio_path), \
                             'audio path %s not found' % (line.strip())
 
                     file_path = line.strip()
 
-                else:
+                    spect = NanoDataset.extract_features(
+                        audio_path, sample_rate, truncate, flag_fft, window_size,
+                        window_stride, window, normalize_audio
+                    )
 
-                    file_path = path
-
-                spect = NanoDataset.extract_features(
-                    audio_path, sample_rate, truncate, flag_fft, window_size,
-                    window_stride, window, normalize_audio
-                )
-
-                # yield {side: spect, side + '_path': line.strip(),
-                #        side + '_lengths': spect.size(1), 'indices': i}
-                yield {side: spect, side + '_path': file_path,
-                       side + '_lengths': spect.size(1), 'indices': i}
+                    # yield {side: spect, side + '_path': line.strip(),
+                    #        side + '_lengths': spect.size(1), 'indices': i}
+                    yield {side: spect, side + '_path': file_path,
+                           side + '_lengths': spect.size(1), 'indices': i}

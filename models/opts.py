@@ -542,18 +542,31 @@ def translate_opts(parser):
     #                    be the decoded sequence""")
     group.add('--save_data', '-save_data', required=True,
               help="Output folder for translated fasta")
-    group.add('--report_bleu', '-report_bleu', action='store_true',
-              help="""Report bleu score after translation,
-                       call tools/multi-bleu.perl on command line""")
-    group.add('--report_rouge', '-report_rouge', action='store_true',
-              help="""Report rouge 1/2/3/L/SU4 score after translation
-                       call tools/test_rouge.py on command line""")
+    # group.add('--report_bleu', '-report_bleu', action='store_true',
+    #           help="""Report bleu score after translation,
+    #                    call tools/multi-bleu.perl on command line""")
+    # group.add('--report_rouge', '-report_rouge', action='store_true',
+    #           help="""Report rouge 1/2/3/L/SU4 score after translation
+    #                    call tools/test_rouge.py on command line""")
 
     # Options most relevant to summarization.
     # group.add('--dynamic_dict', '-dynamic_dict', action='store_true',
     #           help="Create dynamic dictionaries")
     # group.add('--share_vocab', '-share_vocab', action='store_true',
     #           help="Share source and target vocabulary")
+
+    group = parser.add_argument_group('Random Sampling')
+    group.add('--random_sampling_topk', '-random_sampling_topk',
+              default=1, type=int,
+              help="""Set this to -1 to do random sampling from full
+                      distribution. Set this to value k>1 to do random
+                      sampling restricted to the k most likely next tokens.
+                      Set this to 1 to use argmax or for doing beam
+                      search.""")
+    group.add('--random_sampling_temp', '-random_sampling_temp',
+              default=1., type=float,
+              help="""If doing random sampling, divide the logits by
+                       this before computing softmax during decoding.""")
 
     group = parser.add_argument_group('Beam')
     group.add('--fast', '-fast', action="store_true",
