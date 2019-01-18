@@ -13,7 +13,7 @@ import codecs
 import torch
 import multiprocessing
 
-from utils.labelop import extract_fast5
+from utils.labelop import extract_fast5, extract_signal
 from utils.logging import init_logger, logger
 
 import inputters.inputter as inputters
@@ -73,13 +73,15 @@ def init_fast5(opt):
                              opt.normalization_raw,
                              opt.src_seq_length,),
                              callback=writeToFile)
-
-            # output_state = extract_fast5(os.path.join(opt.src_dir,file_h5),
-            #                              opt.save_data,
-            #                              opt.basecall_group,
-            #                              opt.basecall_subgroup,
-            #                              opt.normalization_raw,
-            #                              opt.src_seq_length)
+        if file_h5.endswith('signal'):
+            pool.apply_async(extract_signal,
+                             (os.path.join(opt.src_dir, file_h5),
+                             opt.save_data,
+                             opt.basecall_group,
+                             opt.basecall_subgroup,
+                             opt.normalization_raw,
+                             opt.src_seq_length,),
+                             callback=writeToFile)
 
     pool.close()
     pool.join()
