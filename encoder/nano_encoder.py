@@ -23,14 +23,14 @@ class NanoEncoder(nn.Module):
         window_size (int): input spec
 
     """
-    def __init__(self, rnn_type, enc_layers, dec_layers, brnn,
+    def __init__(self, rnn_type, enc_layers, dec_layers,
                  enc_rnn_size, dec_rnn_size, enc_pooling, dropout,
                  sample_rate, window_size, input_size):
         super(NanoEncoder, self).__init__()
         self.enc_layers = enc_layers
         self.rnn_type = rnn_type
         self.dec_layers = dec_layers
-        num_directions = 2 if brnn else 1
+        num_directions = 2
         self.num_directions = num_directions
         assert enc_rnn_size % num_directions == 0
         enc_rnn_size_real = enc_rnn_size // num_directions
@@ -60,7 +60,7 @@ class NanoEncoder(nn.Module):
                         hidden_size=enc_rnn_size_real,
                         num_layers=1,
                         dropout=dropout,
-                        bidirectional=brnn)
+                        bidirectional=True)
         self.pool_0 = nn.MaxPool1d(enc_pooling[0])
         for l in range(enc_layers - 1):
             batchnorm = nn.BatchNorm1d(enc_rnn_size, affine=True)
@@ -70,7 +70,7 @@ class NanoEncoder(nn.Module):
                             hidden_size=enc_rnn_size_real,
                             num_layers=1,
                             dropout=dropout,
-                            bidirectional=brnn)
+                            bidirectional=True)
             setattr(self, 'rnn_%d' % (l + 1), rnn)
             setattr(self, 'pool_%d' % (l + 1),
                     nn.MaxPool1d(enc_pooling[l + 1]))

@@ -36,7 +36,7 @@ class ProgressBar:
         sys.stdout.write('{0:3}/{1:3}: '.format(self.count, self.total))
         sys.stdout.write('#' * progress + '-' * (self.width - progress))
         if self.count > 0:
-            s_estimate = s * self.total / self.count
+            s_estimate = s * (self.total-self.count) / self.count
         else:
             s_estimate = 0
 
@@ -83,14 +83,14 @@ def main(opt):
             c_bpread = index2base(np.argmax(simple_assembly(all_predictions), axis=0))
         else:
             c_bpread = simple_assembly(all_predictions, flag_intersection=False)
-        with open(os.path.join(opt.save_data, 'result', file_src.split('.')[0] + '.fasta'), 'w') as file_fasta:
-            file_fasta.writelines('>%s\n%s' % (file_src.split('.')[0], c_bpread))
+        with open(os.path.join(opt.save_data, 'result', file_src.split('.txt')[0] + '.fasta'), 'w') as file_fasta:
+            file_fasta.writelines('>%s\n%s' % (file_src.split('.txt')[0], c_bpread))
         with open(os.path.join(opt.save_data, 'segment', file_src), 'w+') as file_segment:
             for n_best_preds in all_predictions:
                 file_segment.write('\n'.join(n_best_preds) + '\n')
         with open(os.path.join(opt.save_data, 'speed.txt'), 'a+') as file_summary:
             file_summary.writelines("%s\t%0.2f\t%d\t%0.2f\n" % (
-                file_src.split('.')[0], float(time_translate), len(c_bpread), len(c_bpread) / float(time_translate)))
+                file_src.split('.txt')[0], float(time_translate), len(c_bpread), len(c_bpread) / float(time_translate)))
 
         bar.log(time_task)
 
@@ -128,7 +128,7 @@ def main(opt):
     total_h5 = 0
     total_h5_translated = 0
 
-    num_limited = 500
+    # num_limited = 500
 
     for file_h5 in os.listdir(opt.src_dir):
         if file_h5.endswith('fast5'):
@@ -146,7 +146,7 @@ def main(opt):
             #                   opt.src_seq_length,
             #                   opt.src_seq_stride,),
             #                  callback=translate)
-        if not os.path.exists(os.path.join(opt.save_data, 'result', output_prefix_feature.split('.')[0]+'.fasta')):
+        if not os.path.exists(os.path.join(opt.save_data, 'result', output_prefix_feature.split('.txt')[0]+'.fasta')):
             total_h5 += 1
             pool.apply_async(extract_fast5_raw,
                              (os.path.join(opt.src_dir, file_h5),
@@ -159,8 +159,8 @@ def main(opt):
         else:
             total_h5_translated += 1
 
-        if total_h5 + total_h5_translated >= num_limited:
-            break
+        # if total_h5 + total_h5_translated >= num_limited:
+        #     break
 
     logger.info('%d reads have already translated, remains %d read\n' % (total_h5_translated, total_h5))
     bar.setTotal(total_h5)

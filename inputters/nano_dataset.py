@@ -17,8 +17,6 @@ from onmt.inputters.text_dataset import TextDataset
 from onmt.inputters.dataset_base import DatasetBase, PAD_WORD, BOS_WORD, \
     EOS_WORD
 
-DNA_IDX = ['A', 'C', 'G', 'T']
-
 
 class NanoDataset(DatasetBase):
     """ Dataset for data_type=='nano'

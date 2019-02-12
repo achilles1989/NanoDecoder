@@ -66,7 +66,7 @@ def model_opts(parser):
     #                    Options are [text|img|audio].""")
 
     group.add('--encoder_type', '-encoder_type', type=str, default='rnn',
-              choices=['rnn', 'brnn', 'mean', 'transformer', 'cnn', 'nano'],
+              choices=['rnn', 'brnn', 'mean', 'transformer', 'cnn', 'nano', 'resnet'],
               help="""Type of encoder layer to use. Non-RNN layers
                        are experimental. Options are
                        [rnn|brnn|mean|transformer|cnn].""")
@@ -251,6 +251,8 @@ def preprocess_opts(parser):
     group.add('--tgt_seq_length_trunc', '-tgt_seq_length_trunc',
               type=int, default=0,
               help="Truncate target sequence length.")
+    group.add('--cpg', '-cpg', action="store_true",
+              help="Change CPG labels to M.")
     # group.add('--lower', '-lower', action='store_true', help='lowercase data')
     group.add('--filter_valid', '-filter_valid', action='store_true',
               help='Filter validation data by src and/or tgt length')

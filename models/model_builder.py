@@ -16,6 +16,7 @@ from encoder.mean_encoder import MeanEncoder
 # from onmt.encoders.audio_encoder import AudioEncoder
 # from onmt.encoders.image_encoder import ImageEncoder
 from encoder.nano_encoder import NanoEncoder
+from encoder.resnet_encoder import ResNetEncoder, ResNetForRNNEncoder
 
 from onmt.decoders.decoder import InputFeedRNNDecoder, StdRNNDecoder
 # from onmt.decoders.transformer import TransformerDecoder
@@ -93,7 +94,6 @@ def build_encoder(opt, embeddings):
             opt.rnn_type,
             opt.enc_layers,
             opt.dec_layers,
-            opt.brnn,
             opt.enc_rnn_size,
             opt.dec_rnn_size,
             opt.audio_enc_pooling,
@@ -102,6 +102,26 @@ def build_encoder(opt, embeddings):
             opt.window_size,
             opt.input_size
         )
+    elif opt.encoder_type == "resnet":
+
+        if opt.decoder_type == 'cnn':
+            encoder = ResNetEncoder(
+                opt.enc_layers,
+                opt.enc_rnn_size,
+                [2,2,2,2],
+                opt.input_size,
+                embeddings
+            )
+        else:
+            encoder = ResNetForRNNEncoder(
+                opt.dec_layers,
+                opt.enc_rnn_size,
+                opt.dec_rnn_size,
+                [2,2,2,2],
+                opt.input_size,
+                embeddings,
+                opt.rnn_type
+            )
     else:
         encoder = RNNEncoder(
             opt.rnn_type,
@@ -149,7 +169,8 @@ def build_decoder(opt, embeddings):
         dec_class = InputFeedRNNDecoder if opt.input_feed else StdRNNDecoder
         decoder = dec_class(
             opt.rnn_type,
-            opt.brnn,
+            # opt.brnn,
+            True,
             opt.dec_layers,
             opt.dec_rnn_size,
             opt.global_attention,
