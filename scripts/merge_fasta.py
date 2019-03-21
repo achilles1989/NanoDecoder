@@ -23,6 +23,6 @@ if __name__ == '__main__':
 
     with open(opt.output,'w') as file:
         for path_dataset in list_dataset:
-            if path_dataset.endswith('fasta'):
+            if path_dataset.endswith('fasta') or path_dataset.endswith('fastq'):
                 data = open(os.path.join(opt.source,path_dataset)).read().strip()
                 file.writelines(data+'\n')

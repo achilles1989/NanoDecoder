@@ -328,6 +328,7 @@ def simple_assembly(bpreads, flag_intersection=True):
             if indx == 0:
                 add_count(concensus, 0, bpread)
                 continue
+
             d = difflib.SequenceMatcher(None, bpreads[indx - 1], bpread)
             match_block = max(d.get_matching_blocks(), key=lambda x: x[2])
             disp = match_block[0] - match_block[1]

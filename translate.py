@@ -79,20 +79,22 @@ def main(opt):
 
     def writeOutPut(file_src, all_predictions, time_translate, time_task):
 
-        if opt.src_seq_stride < opt.src_seq_length:
-            c_bpread = index2base(np.argmax(simple_assembly(all_predictions), axis=0))
-        else:
-            c_bpread = simple_assembly(all_predictions, flag_intersection=False)
-        with open(os.path.join(opt.save_data, 'result', file_src.split('.txt')[0] + '.fasta'), 'w') as file_fasta:
-            file_fasta.writelines('>%s\n%s' % (file_src.split('.txt')[0], c_bpread))
-        with open(os.path.join(opt.save_data, 'segment', file_src), 'w+') as file_segment:
-            for n_best_preds in all_predictions:
-                file_segment.write('\n'.join(n_best_preds) + '\n')
-        with open(os.path.join(opt.save_data, 'speed.txt'), 'a+') as file_summary:
-            file_summary.writelines("%s\t%0.2f\t%d\t%0.2f\n" % (
-                file_src.split('.txt')[0], float(time_translate), len(c_bpread), len(c_bpread) / float(time_translate)))
-
-        bar.log(time_task)
+        try:
+            if opt.src_seq_stride < opt.src_seq_length:
+                c_bpread = index2base(np.argmax(simple_assembly(all_predictions), axis=0))
+            else:
+                c_bpread = simple_assembly(all_predictions, flag_intersection=False)
+            with open(os.path.join(opt.save_data, 'result', file_src.split('.txt')[0] + '.fasta'), 'w') as file_fasta:
+                file_fasta.writelines('>%s\n%s' % (file_src.split('.txt')[0], c_bpread))
+            with open(os.path.join(opt.save_data, 'segment', file_src), 'w+') as file_segment:
+                for n_best_preds in all_predictions:
+                    file_segment.write('\n'.join(n_best_preds) + '\n')
+            with open(os.path.join(opt.save_data, 'speed.txt'), 'a+') as file_summary:
+                file_summary.writelines("%s\t%0.2f\t%d\t%0.2f\n" % (
+                    file_src.split('.txt')[0], float(time_translate), len(c_bpread), len(c_bpread) / float(time_translate)))
+            bar.log(time_task)
+        except:
+            print('!!!error!!!data src: '+ file_src.split('.txt')[0])
 
     def translate(source_data):
 
