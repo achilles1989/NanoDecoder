@@ -11,12 +11,14 @@ import inputters.inputter as inputters
 import onmt.modules
 from encoder.rnn_encoder import RNNEncoder
 from encoder.transformer import TransformerEncoder
+from encoder.ctransformer import CTransformerEncoder
 from encoder.cnn_encoder import CNNEncoder
 from encoder.mean_encoder import MeanEncoder
 # from onmt.encoders.audio_encoder import AudioEncoder
 # from onmt.encoders.image_encoder import ImageEncoder
 from encoder.nano_encoder import NanoEncoder
 from encoder.resnet_encoder import ResNetEncoder, ResNetForRNNEncoder
+from encoder.crnn_encoder import CRNNEncoder
 
 from onmt.decoders.decoder import InputFeedRNNDecoder, StdRNNDecoder
 # from onmt.decoders.transformer import TransformerDecoder
@@ -79,6 +81,17 @@ def build_encoder(opt, embeddings):
             opt.input_size,
             embeddings
         )
+
+    elif opt.encoder_type == "ctransformer":
+        encoder = CTransformerEncoder(
+            [2, 2, 2, 2],
+            opt.enc_layers,
+            opt.enc_rnn_size,
+            opt.heads,
+            opt.transformer_ff,
+            opt.dropout,
+            embeddings
+        )
     elif opt.encoder_type == "cnn":
         encoder = CNNEncoder(
             opt.enc_layers,
@@ -101,6 +114,19 @@ def build_encoder(opt, embeddings):
             opt.sample_rate,
             opt.window_size,
             opt.input_size
+        )
+    elif opt.encoder_type == "crnn":
+        encoder = CRNNEncoder(
+            [2, 2, 2, 2],
+            opt.rnn_type,
+            opt.enc_layers,
+            opt.dec_layers,
+            opt.enc_rnn_size,
+            opt.dec_rnn_size,
+            opt.audio_enc_pooling,
+            opt.dropout,
+            opt.sample_rate,
+            opt.window_size
         )
     elif opt.encoder_type == "resnet":
 
@@ -167,10 +193,13 @@ def build_decoder(opt, embeddings):
         )
     else:
         dec_class = InputFeedRNNDecoder if opt.input_feed else StdRNNDecoder
+
+        if opt.encoder_type == 'nano' or opt.encoder_type == 'crnn':
+            opt.brnn = True
         decoder = dec_class(
             opt.rnn_type,
-            # opt.brnn,
-            True,
+            opt.brnn,
+            # True,
             opt.dec_layers,
             opt.dec_rnn_size,
             opt.global_attention,

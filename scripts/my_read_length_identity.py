@@ -26,11 +26,13 @@ have received a copy of the GNU General Public License along with this program. 
 <http://www.gnu.org/licenses/>.
 """
 
-import collections
-import gzip
-import os
-import statistics
+
 import sys
+import collections
+import statistics
+import os
+import gzip
+import numpy as np
 
 
 def main():
@@ -59,8 +61,7 @@ def main():
 
             read_alignments[read_name].append((read_start, read_end, ref_start, ref_end, identity))
 
-    print('\t'.join(['Name', 'Length', 'Identity', 'Relative length']))
-
+    # print('\t'.join(['Name', 'Length', 'Identity', 'Relative length']))
     read_names = sorted(read_lengths.keys())
 
     array_read_identity = list()
@@ -93,9 +94,9 @@ def main():
         else:
             relative_length = ''
 
-        print('\t'.join([read_name, str(read_length), str(whole_read_identity), relative_length]))
+        # print('\t'.join([read_name, str(read_length), str(whole_read_identity), relative_length]))
 
-    # print('\n%d reads %f%% accuracy' % (len(array_read_identity),np.mean(array_read_identity)))
+    print('\n%d reads %f%% accuracy' % (len(array_read_identity),np.mean(array_read_identity)))
 
 
 def get_compression_type(filename):
