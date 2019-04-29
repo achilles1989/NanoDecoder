@@ -27,8 +27,8 @@ if __name__ == '__main__':
 
     for sample in samples:
         filename = os.path.join(opt.source, sample)
-        command_cp = 'cp ' + filename + ' ' + os.path.join(opt.save, '01_raw_fast5')
+        command_cp = 'cp ' + filename + ' ' + os.path.join(opt.output, '01_raw_fast5')
         subprocess.call(command_cp, shell=True)
 
-    command_ls = 'ls ' + os.path.join(opt.save, '01_raw_fast5') + ' > ' + os.path.join(opt.save, 'list_fast5.txt')
+    command_ls = 'ls ' + os.path.join(opt.output, '01_raw_fast5') + ' > ' + os.path.join(opt.output, 'list_fast5.txt')
     subprocess.call(command_ls, shell=True)
