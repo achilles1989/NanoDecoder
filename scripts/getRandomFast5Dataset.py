@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser = config_opts()
     opt = parser.parse_args()
 
-    samples = random.sample(os.listdir(opt.source), opt.number)
+    samples = random.sample(os.listdir(opt.source), int(opt.number))
 
     for sample in samples:
         filename = os.path.join(opt.source, sample)
