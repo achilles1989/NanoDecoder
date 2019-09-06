@@ -21,11 +21,16 @@ base_dict = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'M': 4}
 def extract_fast5(input_file_path, output_path, basecall_group, basecall_subgroup, normalization, max_length, flag_cpg, min_label):
     """
     Extract the signal and label from a single fast5 file into Multiple Segments
-    Args:
-        input_file_path: path of a fast5 file.
-
+    :param input_file_path: path to fast5
+    :param output_path: path to save segments
+    :param basecall_group: name of basecall_group in fast5, default: RawGenomeCorrected_000
+    :param basecall_subgroup: name of basecall_subgroup in fast5, default: BaseCalled_template
+    :param normalization: mean or median
+    :param max_length: max sentence length
+    :param flag_cpg: if change CG to MG
+    :param min_label: start label for segments
+    :return:
     """
-
     # str_summary = ''
     # str_label = ''
     dict_label = {}
