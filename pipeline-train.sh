@@ -1,4 +1,5 @@
 #!/bin/bash
+# pipeline to train
 
 #path_src=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/datasets/data-chiron-update
 path_src=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/datasets/data-chiron-mix
