@@ -40,10 +40,10 @@ if [ $model_translate = 'albacore' ];then
   rm ${path_save}/02_basecalled_reads/albacore_v2.3.3.index.*
 elif [ $model_translate = 'guppy' ];then
   guppy_basecaller -c /home/quanc/software/ont-guppy/data/dna_r9.4.1_450bps_hac.cfg -i $path_read -s ${path_save}/result-guppy --device 'cuda:0' --fast5_out
-#  nanopolish extract -r -t template -o ${path_save}/02_basecalled_reads/albacore_v2.3.3 ${path_save}/result-albacore/workspace
-#  mv ${path_save}/02_basecalled_reads/albacore_v2.3.3.index.readdb ${path_save}/read_id_to_fast5
-#  rm ${path_save}/02_basecalled_reads/albacore_v2.3.3.index
-#  rm ${path_save}/02_basecalled_reads/albacore_v2.3.3.index.*
+  nanopolish extract -r -t template -o ${path_save}/02_basecalled_reads/guppy_v3.5.2 ${path_save}/result-guppy/workspace
+  mv ${path_save}/02_basecalled_reads/guppy_v3.5.2.index.readdb ${path_save}/read_id_to_fast5
+  rm ${path_save}/02_basecalled_reads/guppy_v3.5.2.index
+  rm ${path_save}/02_basecalled_reads/guppy_v3.5.2.index.*
 elif [ $model_translate = 'scrappie' ];then
   scrappie raw --threads $num_thread -f FASTA -o ${path_save}/02_basecalled_reads/scrappie_v1.4.0 --model rgrgr_r94 $path_read
 elif [ $model_translate = 'chiron' ];then
@@ -51,7 +51,7 @@ elif [ $model_translate = 'chiron' ];then
   cat ${path_save}/result-chiron/result/*.fastq > ${path_save}/02_basecalled_reads/chiron_v0.4.2.fastq
   seqtk seq -a ${path_save}/02_basecalled_reads/chiron_v0.4.2.fastq > ${path_save}/02_basecalled_reads/chiron_v0.4.2
   rm ${path_save}/02_basecalled_reads/chiron_v0.4.2.fastq
-elif [ $model_translate = 'nano' ];then
+elif [ $model_translate = 'rnn2trans' ];then
 
   ## Basecalling Models
   ## 1. PCR ecoli & na12878
@@ -65,6 +65,73 @@ elif [ $model_translate = 'nano' ];then
   path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2transformer-20190212_step_640000.pt
   #RNN2RNN
   #path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2rnn-20190212_step_640000.pt
+  #Modification
+  #path_model=$path_root/data_train_nanopolish_ecoli_50k_to_300k_4000read/model/model-nano-nano2rnn-20190220_step_336000.pt
+
+  ## 4. chiron ecoli & Lamda 256 LR 0.003
+  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2transformer-20190202_step_100000.pt
+  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2transformer-20190211_step_100000.pt
+  ## Methylate-calling models
+  #path_model=/media/quanc/E/data/nanopore_modification/data_train_nanopolish_ecoli_50k_to_300k/model/model-nano-brnn2trans-20190128_step_5000.pt
+
+  #array_max = (50 100)
+  array_max=(100)
+  #array_stride=(30 60 300)
+  array_stride=(60)
+  #array_beam=(1 2 5)
+  array_beam=(5)
+  model_embedding=256
+  model_name=rnn2trans
+  #
+  for model_beam in ${array_beam[@]}; do
+      for model_stride in ${array_stride[@]}; do
+          for model_max in ${array_max[@]}; do
+
+#          model_batch=2500
+          model_batch=1400
+  #        model_batch=800
+
+          if [ ${model_beam} -eq 2 ]; then
+              model_batch=1000
+  #            model_batch=1000
+  #            model_batch=500
+          elif [ ${model_beam} -eq 5 ]; then
+  #            model_batch=800
+              model_batch=500
+  #            model_batch=200
+          fi
+          model_prefix=${model_name}_embed${model_embedding}_seq300_stride${model_stride}_beam${model_beam}_max${model_max}_batch${model_batch}
+          echo ${model_prefix};
+          if [ ${gpu_id} -eq 0 ]; then
+              echo "python translate.py -model $path_model -gpu $gpu_id -src_dir $path_read -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread"
+              python $path_nanodecoder/translate.py -model $path_model -gpu $gpu_id -src_dir $path_read -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread
+          elif [ ${gpu_id} -eq 1 ]; then
+              echo "CUDA_VISIBLE_DEVICES=$gpu_id python translate.py -model $path_model -src_dir $path_read -gpu $gpu_id -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread"
+              CUDA_VISIBLE_DEVICES=$gpu_id python $path_nanodecoder/translate.py -model $path_model -src_dir $path_read -gpu $gpu_id -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread
+          fi
+          mv ${path_save}/result ${path_save}/result-${model_prefix}
+          mv ${path_save}/segment ${path_save}/segment-${model_prefix}
+          mv ${path_save}/speed.txt ${path_save}/speed-${model_prefix}.txt
+          paste --delimiters=\\n --serial ${path_save}/result-${model_prefix}/*.fasta > ${path_save}/02_02_basecalled_reads/${model_prefix}
+
+          done
+      done
+  done
+
+elif [ "$model_translate" = 'rnn2rnn' ];then
+
+  ## Basecalling Models
+  ## 1. PCR ecoli & na12878
+  #path_model=/media/quanc/E/data/chiron_train/res_pytorch/data_ecoliANDna12878_nano/model/model-nano-brnn2trans-20190105_step_100000.pt
+  ## 2. chiron ecoli & Lamda 512
+  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2trans-20190118_step_100000.pt
+  ## 3. chiron ecoli & Lamda 256
+  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2trans-20190123_step_100000.pt
+
+  #BLSTM2Transformer
+#  path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2transformer-20190212_step_640000.pt
+  #RNN2RNN
+  path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2rnn-20190212_step_640000.pt
   #Modification
   #path_model=$path_root/data_train_nanopolish_ecoli_50k_to_300k_4000read/model/model-nano-nano2rnn-20190220_step_336000.pt
 
