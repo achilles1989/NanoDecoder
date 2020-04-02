@@ -5,6 +5,7 @@ path_dataset=$2
 gpu_id=$3
 
 num_thread=40
+path_nanodecoder=/data1/quanc/project/20181227_NanoDecoder/nanodecoder/
 path_root=/data1/quanc/project/20181227_NanoDecoder/result/
 path_save=$path_root/$path_dataset
 
@@ -103,10 +104,10 @@ elif [ $model_translate = 'nano' ];then
           echo ${model_prefix};
           if [ ${gpu_id} -eq 0 ]; then
               echo "python translate.py -model $path_model -gpu $gpu_id -src_dir $path_read -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread"
-              python translate.py -model $path_model -gpu $gpu_id -src_dir $path_read -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread
+              python $path_nanodecoder/translate.py -model $path_model -gpu $gpu_id -src_dir $path_read -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread
           elif [ ${gpu_id} -eq 1 ]; then
               echo "CUDA_VISIBLE_DEVICES=$gpu_id python translate.py -model $path_model -src_dir $path_read -gpu $gpu_id -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread"
-              CUDA_VISIBLE_DEVICES=$gpu_id python translate.py -model $path_model -src_dir $path_read -gpu $gpu_id -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread
+              CUDA_VISIBLE_DEVICES=$gpu_id python $path_nanodecoder/translate.py -model $path_model -src_dir $path_read -gpu $gpu_id -save_data $path_save --src_seq_length 300 --src_seq_stride $model_stride --fast --beam_size $model_beam --max_length $model_max --batch_size $model_batch --thread $num_thread
           fi
           mv ${path_save}/result ${path_save}/result-${model_prefix}
           mv ${path_save}/segment ${path_save}/segment-${model_prefix}
