@@ -2,6 +2,7 @@
 
 model_translate=$1
 path_dataset=$2
+gpu_id=$3
 
 num_thread=40
 path_root=/data1/quanc/project/20181227_NanoDecoder/result/
@@ -79,7 +80,6 @@ elif [ $model_translate = 'nano' ];then
   #array_beam=(1 2 5)
   array_beam=(5)
   model_embedding=256
-  gpu_id=0
   model_name=rnn2trans
   #
   for model_beam in ${array_beam[@]}; do
