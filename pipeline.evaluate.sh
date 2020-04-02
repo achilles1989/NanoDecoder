@@ -37,7 +37,7 @@ if [ $model_translate = 'albacore' ];then
   rm ${path_save}/02_basecalled_reads/albacore_v2.3.3.index
   rm ${path_save}/02_basecalled_reads/albacore_v2.3.3.index.*
 elif [ $model_translate = 'guppy' ];then
-  guppy_basecaller -c /home/quanc/software/ont-guppy/data/dna_r9.4.1_450bps_hac.cfg -i $path_read -s ${path_save}/result-guppy --fast5_out
+  guppy_basecaller -c /home/quanc/software/ont-guppy/data/dna_r9.4.1_450bps_hac.cfg -i $path_read -s ${path_save}/result-guppy --device 'cuda:0' --fast5_out
 #  nanopolish extract -r -t template -o ${path_save}/02_basecalled_reads/albacore_v2.3.3 ${path_save}/result-albacore/workspace
 #  mv ${path_save}/02_basecalled_reads/albacore_v2.3.3.index.readdb ${path_save}/read_id_to_fast5
 #  rm ${path_save}/02_basecalled_reads/albacore_v2.3.3.index
