@@ -79,10 +79,11 @@ elif [ $model_translate = 'rnn2trans' ];then
   array_max=(100)
   #array_stride=(30 60 300)
   array_stride=(60)
-  if [ $model_translate = 'GS' ];then
+  if [ $beam = 'GS' ];then
     array_beam=(1)
-  elif [ $model_translate = 'BS' ];then
+  elif [ $beam = 'BS' ];then
     array_beam=(2)
+  fi;
   #array_beam=(1 2 5)
 #  array_beam=(5)
   model_embedding=256
@@ -150,10 +151,11 @@ elif [ "$model_translate" = 'rnn2rnn' ];then
   array_max=(100)
   #array_stride=(30 60 300)
   array_stride=(60)
-  if [ $model_translate = 'GS' ];then
+  if [ $beam = 'GS' ];then
     array_beam=(1)
-  elif [ $model_translate = 'BS' ];then
+  elif [ $beam = 'BS' ];then
     array_beam=(2)
+  fi;
   model_embedding=256
   model_name=rnn2trans
   #
