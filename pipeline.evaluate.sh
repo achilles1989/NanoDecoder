@@ -3,6 +3,7 @@
 model_translate=$1
 path_dataset=$2
 gpu_id=$3
+beam=$4
 
 num_thread=40
 path_nanodecoder=/data1/quanc/project/20181227_NanoDecoder/nanodecoder/
@@ -78,8 +79,12 @@ elif [ $model_translate = 'rnn2trans' ];then
   array_max=(100)
   #array_stride=(30 60 300)
   array_stride=(60)
+  if [ $model_translate = 'GS' ];then
+    array_beam=(1)
+  elif [ $model_translate = 'BS' ];then
+    array_beam=(2)
   #array_beam=(1 2 5)
-  array_beam=(5)
+#  array_beam=(5)
   model_embedding=256
   model_name=rnn2trans
   #
@@ -145,8 +150,10 @@ elif [ "$model_translate" = 'rnn2rnn' ];then
   array_max=(100)
   #array_stride=(30 60 300)
   array_stride=(60)
-  #array_beam=(1 2 5)
-  array_beam=(5)
+  if [ $model_translate = 'GS' ];then
+    array_beam=(1)
+  elif [ $model_translate = 'BS' ];then
+    array_beam=(2)
   model_embedding=256
   model_name=rnn2trans
   #
