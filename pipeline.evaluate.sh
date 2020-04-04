@@ -86,7 +86,7 @@ elif [ $model_translate = 'rnn2trans' ];then
   if [ $beam = 'GS' ];then
     array_beam=(1)
   elif [ $beam = 'BS' ];then
-    array_beam=(2)
+    array_beam=(5)
   fi;
   #array_beam=(1 2 5)
 #  array_beam=(5)
@@ -134,7 +134,7 @@ elif [ "$model_translate" = 'rnn2rnn' ];then
   if [ $beam = 'GS' ];then
     array_beam=(1)
   elif [ $beam = 'BS' ];then
-    array_beam=(2)
+    array_beam=(5)
   fi;
   model_embedding=256
   model_name=rnn2rnn
