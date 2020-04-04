@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import configargparse
+import warnings
 
 from onmt.utils.logging import init_logger
 from translate.translator import build_translator
@@ -170,6 +171,9 @@ def main(opt):
     pool.join()
 
 if __name__ == "__main__":
+
+    warnings.simplefilter('ignore')
+
     parser = configargparse.ArgumentParser(
         description='translate.py',
         config_file_parser_class=configargparse.YAMLConfigFileParser,
