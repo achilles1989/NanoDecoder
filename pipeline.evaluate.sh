@@ -137,7 +137,7 @@ elif [ "$model_translate" = 'rnn2rnn' ];then
     array_beam=(2)
   fi;
   model_embedding=256
-  model_name=rnn2trans
+  model_name=rnn2rnn
   #
   for model_beam in ${array_beam[@]}; do
       for model_stride in ${array_stride[@]}; do
