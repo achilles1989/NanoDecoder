@@ -4,8 +4,8 @@ model_translate=$1
 path_dataset=$2
 gpu_id=$3
 beam=$4
+num_thread=10
 
-num_thread=40
 path_nanodecoder=/data1/quanc/project/20181227_NanoDecoder/nanodecoder/
 path_root=/data1/quanc/project/20181227_NanoDecoder/result/
 path_save=$path_root/$path_dataset
