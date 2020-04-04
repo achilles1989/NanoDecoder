@@ -24,6 +24,28 @@ path_save=$path_root/$path_dataset
 #path_save=/media/quanc/E/data/nanopore_modification/data_test_nanopolish_ecoli_10k_to_12k
 #path_read=/media/quanc/E/data/nanopore_basecalling/train_raw/data_10000_12000/pcr_MSssI
 
+## Basecalling Models
+## 1. PCR ecoli & na12878
+#path_model=/media/quanc/E/data/chiron_train/res_pytorch/data_ecoliANDna12878_nano/model/model-nano-brnn2trans-20190105_step_100000.pt
+## 2. chiron ecoli & Lamda 512
+#path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2trans-20190118_step_100000.pt
+## 3. chiron ecoli & Lamda 256
+#path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2trans-20190123_step_100000.pt
+
+#BLSTM2Transformer
+#path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2transformer-20190212_step_640000.pt
+#RNN2RNN
+#path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2rnn-20190212_step_640000.pt
+#Modification
+#path_model=$path_root/data_train_nanopolish_ecoli_50k_to_300k_4000read/model/model-nano-nano2rnn-20190220_step_336000.pt
+
+## 4. chiron ecoli & Lamda 256 LR 0.003
+#path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2transformer-20190202_step_100000.pt
+#path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2transformer-20190211_step_100000.pt
+## Methylate-calling models
+#path_model=/media/quanc/E/data/nanopore_modification/data_train_nanopolish_ecoli_50k_to_300k/model/model-nano-brnn2trans-20190128_step_5000.pt
+
+
 # a subset of 500 reads
 #path_save=$path_save/test_read500/
 
@@ -54,26 +76,8 @@ elif [ $model_translate = 'chiron' ];then
   rm ${path_save}/02_basecalled_reads/chiron_v0.4.2.fastq
 elif [ $model_translate = 'rnn2trans' ];then
 
-  ## Basecalling Models
-  ## 1. PCR ecoli & na12878
-  #path_model=/media/quanc/E/data/chiron_train/res_pytorch/data_ecoliANDna12878_nano/model/model-nano-brnn2trans-20190105_step_100000.pt
-  ## 2. chiron ecoli & Lamda 512
-  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2trans-20190118_step_100000.pt
-  ## 3. chiron ecoli & Lamda 256
-  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2trans-20190123_step_100000.pt
-
   #BLSTM2Transformer
   path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2transformer-20190212_step_640000.pt
-  #RNN2RNN
-  #path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2rnn-20190212_step_640000.pt
-  #Modification
-  #path_model=$path_root/data_train_nanopolish_ecoli_50k_to_300k_4000read/model/model-nano-nano2rnn-20190220_step_336000.pt
-
-  ## 4. chiron ecoli & Lamda 256 LR 0.003
-  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2transformer-20190202_step_100000.pt
-  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2transformer-20190211_step_100000.pt
-  ## Methylate-calling models
-  #path_model=/media/quanc/E/data/nanopore_modification/data_train_nanopolish_ecoli_50k_to_300k/model/model-nano-brnn2trans-20190128_step_5000.pt
 
   #array_max = (50 100)
   array_max=(100)
@@ -93,18 +97,12 @@ elif [ $model_translate = 'rnn2trans' ];then
       for model_stride in ${array_stride[@]}; do
           for model_max in ${array_max[@]}; do
 
-#          model_batch=2500
-          model_batch=1400
-  #        model_batch=800
+          model_batch=2500
 
           if [ ${model_beam} -eq 2 ]; then
-              model_batch=1000
-  #            model_batch=1000
-  #            model_batch=500
+              model_batch=1400
           elif [ ${model_beam} -eq 5 ]; then
-  #            model_batch=800
-              model_batch=500
-  #            model_batch=200
+              model_batch=1000
           fi
           model_prefix=${model_name}_embed${model_embedding}_seq300_stride${model_stride}_beam${model_beam}_max${model_max}_batch${model_batch}
           echo ${model_prefix};
@@ -126,26 +124,8 @@ elif [ $model_translate = 'rnn2trans' ];then
 
 elif [ "$model_translate" = 'rnn2rnn' ];then
 
-  ## Basecalling Models
-  ## 1. PCR ecoli & na12878
-  #path_model=/media/quanc/E/data/chiron_train/res_pytorch/data_ecoliANDna12878_nano/model/model-nano-brnn2trans-20190105_step_100000.pt
-  ## 2. chiron ecoli & Lamda 512
-  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2trans-20190118_step_100000.pt
-  ## 3. chiron ecoli & Lamda 256
-  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2trans-20190123_step_100000.pt
-
-  #BLSTM2Transformer
-#  path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2transformer-20190212_step_640000.pt
   #RNN2RNN
   path_model=$path_root/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2rnn-20190212_step_640000.pt
-  #Modification
-  #path_model=$path_root/data_train_nanopolish_ecoli_50k_to_300k_4000read/model/model-nano-nano2rnn-20190220_step_336000.pt
-
-  ## 4. chiron ecoli & Lamda 256 LR 0.003
-  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-brnn2transformer-20190202_step_100000.pt
-  #path_model=/media/quanc/E/data/nanopore_basecalling/res_pytorch/data_train_r94_chiron_ecoliANDLamda/model/model-nano-nano2transformer-20190211_step_100000.pt
-  ## Methylate-calling models
-  #path_model=/media/quanc/E/data/nanopore_modification/data_train_nanopolish_ecoli_50k_to_300k/model/model-nano-brnn2trans-20190128_step_5000.pt
 
   #array_max = (50 100)
   array_max=(100)
@@ -163,18 +143,11 @@ elif [ "$model_translate" = 'rnn2rnn' ];then
       for model_stride in ${array_stride[@]}; do
           for model_max in ${array_max[@]}; do
 
-#          model_batch=2500
-          model_batch=1400
-  #        model_batch=800
-
+          model_batch=2500
           if [ ${model_beam} -eq 2 ]; then
-              model_batch=1000
-  #            model_batch=1000
-  #            model_batch=500
+              model_batch=1400
           elif [ ${model_beam} -eq 5 ]; then
-  #            model_batch=800
-              model_batch=500
-  #            model_batch=200
+              model_batch=1000
           fi
           model_prefix=${model_name}_embed${model_embedding}_seq300_stride${model_stride}_beam${model_beam}_max${model_max}_batch${model_batch}
           echo ${model_prefix};
