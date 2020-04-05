@@ -102,7 +102,8 @@ elif [ $model_translate = 'rnn2trans' ];then
           if [ ${model_beam} -eq 2 ]; then
               model_batch=1400
           elif [ ${model_beam} -eq 5 ]; then
-              model_batch=1000
+#              model_batch=1000
+              model_batch=800
           fi
           model_prefix=${model_name}_embed${model_embedding}_seq300_stride${model_stride}_beam${model_beam}_max${model_max}_batch${model_batch}
           echo ${model_prefix};
@@ -147,7 +148,8 @@ elif [ "$model_translate" = 'rnn2rnn' ];then
           if [ ${model_beam} -eq 2 ]; then
               model_batch=1400
           elif [ ${model_beam} -eq 5 ]; then
-              model_batch=1000
+#              model_batch=1000
+              model_batch=800
           fi
           model_prefix=${model_name}_embed${model_embedding}_seq300_stride${model_stride}_beam${model_beam}_max${model_max}_batch${model_batch}
           echo ${model_prefix};
