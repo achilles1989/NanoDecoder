@@ -161,7 +161,7 @@ elif [ "$model_translate" = 'rnn2rnn' ];then
           mv ${path_save}/result ${path_save}/result-${model_prefix}
           mv ${path_save}/segment ${path_save}/segment-${model_prefix}
           mv ${path_save}/speed.txt ${path_save}/speed-${model_prefix}.txt
-          paste --delimiters=\\n --serial ${path_save}/result-${model_prefix}/*.fasta > ${path_save}/02_02_basecalled_reads/${model_prefix}
+          paste --delimiters=\\n --serial ${path_save}/result-${model_prefix}/*.fasta > ${path_save}/02_basecalled_reads/${model_prefix}
 
           done
       done
